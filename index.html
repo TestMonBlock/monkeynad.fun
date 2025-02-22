@@ -46,7 +46,7 @@
                 while (resolves.length) {
                     resolves.shift()();
                 }
-                return checkDeferredModules();
+                return;
             }
             var installedModules = {};
             var installedChunks = {1: 0};
@@ -103,7 +103,6 @@
             jsonpArray = jsonpArray.slice();
             for (var i = 0; i < jsonpArray.length; i++) webpackJsonpCallback(jsonpArray[i]);
             var parentJsonpFunction = oldJsonpFunction;
-            checkDeferredModules();
         })([]);
     </script>
 </body>
