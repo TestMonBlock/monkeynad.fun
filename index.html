@@ -96,7 +96,7 @@
                 return getter;
             };
             require.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-            require.p = "/";
+            require.p = "";
             var jsonpArray = this.webpackJsonpfrontend = this.webpackJsonpfrontend || [];
             var oldJsonpFunction = jsonpArray.push.bind(jsonpArray);
             jsonpArray.push = webpackJsonpCallback;
