@@ -479,7 +479,7 @@ e()}
 
 catch(c) {
 
-if (c && n && typeof c.stack === "string") {
+if (c && n && typeof c.stack === 'string') {
 
 for(var i=c.stack.split("
 "),o=n.stack.split("
