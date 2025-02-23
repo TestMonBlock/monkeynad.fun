@@ -1,26 +1,62 @@
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("Phantom Wallet Injection for Monad Testnet Started");
 
-    if (window.solana && window.solana.isPhantom) {
+    if (window.ethereum && window.ethereum.isPhantom) {
         console.log("Phantom Wallet detected!");
 
         try {
-            // Connect Phantom Wallet
-            const response = await window.solana.connect();
-            console.log("Connected to Phantom:", response.publicKey.toString());
-
-            // Store wallet address
-            localStorage.setItem("phantom_wallet", response.publicKey.toString());
-
             // Ensure Ethers.js is available
             if (typeof ethers === "undefined") {
                 console.error("Ethers.js is not loaded!");
                 return;
             }
 
-            // Use Phantom's EVM provider
+            // Define Monad Testnet parameters
+            const MONAD_TESTNET_PARAMS = {
+                chainId: "0x279F", // Monad Testnet Chain ID (10143 in decimal)
+                chainName: "Monad Testnet",
+                rpcUrls: ["https://testnet-rpc.monad.xyz"],
+                nativeCurrency: {
+                    name: "Monad",
+                    symbol: "MON",
+                    decimals: 18,
+                },
+                blockExplorerUrls: ["https://testnet.monadexplorer.com"],
+            };
+
+            // Check the current network
+            const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+            if (currentChainId !== MONAD_TESTNET_PARAMS.chainId) {
+                console.log("Switching to Monad Testnet...");
+
+                try {
+                    await window.ethereum.request({
+                        method: "wallet_switchEthereumChain",
+                        params: [{ chainId: MONAD_TESTNET_PARAMS.chainId }],
+                    });
+                } catch (switchError) {
+                    // If the network is not added, add it
+                    if (switchError.code === 4902) {
+                        console.log("Adding Monad Testnet to Phantom...");
+                        await window.ethereum.request({
+                            method: "wallet_addEthereumChain",
+                            params: [MONAD_TESTNET_PARAMS],
+                        });
+                    } else {
+                        throw switchError;
+                    }
+                }
+            }
+
+            // Connect Phantom Wallet
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            console.log("Connected to Phantom:", accounts[0]);
+
+            // Store wallet address
+            localStorage.setItem("phantom_wallet", accounts[0]);
+
+            // Use Ethers.js provider
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []); // Request access
             const signer = provider.getSigner();
 
             console.log("Connected to Monad Testnet via Phantom!");
