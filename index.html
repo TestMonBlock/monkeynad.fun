@@ -39,11 +39,34 @@
       }
     </style>
     <title>ApeEscape Bananafarm</title>
+  </head>
+  
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     
-    <!-- Wallet detection and dynamic script loader -->
+    <!-- UI loads first before wallet connection -->
+    <div id="root">
+      <h1>Welcome to ApeEscape Bananafarm</h1>
+      <p>Loading application...</p>
+    </div>
+    
+    <div id="error-message"></div> <!-- Error message appears if no wallet is found -->
+
+    <!-- Wallet detection and script loading -->
     <script>
       console.log("Starting wallet detection...");
-      function detectWallet(callback) {
+
+      // ✅ Immediately load UI before wallet connection
+      function loadUI() {
+        document.getElementById("root").innerHTML = `
+          <h1>Welcome to ApeEscape Bananafarm</h1>
+          <p>Please connect your wallet to continue.</p>
+          <button id="connectWallet">Connect Wallet</button>
+        `;
+        document.getElementById("connectWallet").addEventListener("click", detectWallet);
+      }
+
+      async function detectWallet() {
         let attempts = 0;
         const interval = setInterval(async function () {
           console.log(
@@ -57,16 +80,16 @@
             console.log("SafePal wallet detected");
             window.CLVWallet = window.safepalProvider;
             clearInterval(interval);
-            await autoConnectWallet();  // Auto-popup for first-time users
-            callback();
+            await autoConnectWallet(); // ✅ Wallet pop-up AFTER UI loads
+            loadMainScript();
           }
-          // Then check for MetaMask or any generic Ethereum provider
+          // Then check for MetaMask or any Ethereum provider
           else if (window.ethereum) {
             console.log("Ethereum provider detected and assigned to clover");
             window.CLVWallet = window.ethereum;
             clearInterval(interval);
-            await autoConnectWallet();  // Auto-popup for first-time users
-            callback();
+            await autoConnectWallet(); // ✅ Wallet pop-up AFTER UI loads
+            loadMainScript();
           } 
           else {
             attempts++;
@@ -76,7 +99,6 @@
               console.error("No supported wallet found. Please install SafePal or MetaMask.");
               document.getElementById("error-message").style.display = "block";
               document.getElementById("error-message").innerText = "No supported wallet found. Please install SafePal or MetaMask.";
-              return;
             }
           }
         }, 100);
@@ -93,21 +115,24 @@
         }
       }
 
-      detectWallet(function () {
+      function loadMainScript() {
         console.log("Wallet detected, loading main script...");
         var script = document.createElement("script");
         script.src = "static/js/main.41b81be2.js";
         script.defer = true;
+        script.onload = function () {
+          console.log("Main script loaded successfully.");
+        };
+        script.onerror = function () {
+          console.error("Error loading main.js. Check file path.");
+          document.getElementById("error-message").style.display = "block";
+          document.getElementById("error-message").innerText = "Error loading app. Please try again later.";
+        };
         document.head.appendChild(script);
-      });
+      }
+
+      // ✅ Load UI immediately before checking wallet
+      loadUI();
     </script>
-    
-    <link href="static/css/main.e07792ef.css" rel="stylesheet" />
-  </head>
-  
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <div id="error-message"></div>  <!-- Wallet error message appears here -->
   </body>
 </html>
