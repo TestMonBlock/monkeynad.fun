@@ -24,6 +24,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 blockExplorerUrls: ["https://testnet.monadexplorer.com"],
             };
 
+            // Validate Hex String Format
+            if (!/^0x[a-fA-F0-9]+$/.test(MONAD_TESTNET_PARAMS.chainId)) {
+                console.error("Invalid hex string for chain ID:", MONAD_TESTNET_PARAMS.chainId);
+                return;
+            }
+
             // Check the current network
             const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
             if (currentChainId !== MONAD_TESTNET_PARAMS.chainId) {
