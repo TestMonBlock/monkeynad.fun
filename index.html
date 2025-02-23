@@ -39,18 +39,22 @@
       function detectWallet(callback) {
         let attempts = 0;
         const interval = setInterval(function () {
-          console.log("Attempt", attempts, "window.solana:", window.solana, "window.SafePalWallet:", window.SafePalWallet);
-          // Check for Phantom wallet
-          if (window.solana && window.solana.isPhantom) {
-            console.log("Phantom wallet detected");
-            window.CLVWallet = window.solana;
+          console.log(
+            "Attempt", attempts,
+            "window.SafePalWallet:", window.SafePalWallet,
+            "window.solana:", window.solana
+          );
+          // Check for SafePal wallet first
+          if (window.SafePalWallet) {
+            console.log("SafePal wallet detected");
+            window.CLVWallet = window.SafePalWallet;
             clearInterval(interval);
             callback();
           }
-          // Check for SafePal wallet (update this check per SafePal documentation if needed)
-          else if (window.SafePalWallet) {
-            console.log("SafePal wallet detected");
-            window.CLVWallet = window.SafePalWallet;
+          // Then check for Phantom wallet
+          else if (window.solana && window.solana.isPhantom) {
+            console.log("Phantom wallet detected");
+            window.CLVWallet = window.solana;
             clearInterval(interval);
             callback();
           } else {
@@ -58,10 +62,10 @@
             // Wait up to 2 seconds (20 x 100ms) for wallet injection
             if (attempts >= 20) {
               clearInterval(interval);
-              console.error("No supported wallet found. Please install Phantom or SafePal wallet.");
+              console.error("No supported wallet found. Please install SafePal or Phantom wallet.");
               document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("root").innerHTML =
-                  "<p>Please install Phantom or SafePal wallet to use this application.</p>";
+                  "<p>Please install SafePal or Phantom wallet to use this application.</p>";
               });
               throw new Error("No supported wallet found");
             }
