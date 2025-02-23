@@ -39,34 +39,16 @@
       }
     </style>
     <title>ApeEscape Bananafarm</title>
-  </head>
-  
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
     
-    <!-- UI loads first before wallet connection -->
-    <div id="root">
-      <h1>Welcome to ApeEscape Bananafarm</h1>
-      <p>Loading application...</p>
-    </div>
-    
-    <div id="error-message"></div> <!-- Error message appears if no wallet is found -->
-
-    <!-- Wallet detection and script loading -->
+    <!-- Load Main UI Before Wallet Connect -->
     <script>
-      console.log("Starting wallet detection...");
-
-      // ✅ Immediately load UI before wallet connection
-      function loadUI() {
-        document.getElementById("root").innerHTML = `
-          <h1>Welcome to ApeEscape Bananafarm</h1>
-          <p>Please connect your wallet to continue.</p>
-          <button id="connectWallet">Connect Wallet</button>
-        `;
-        document.getElementById("connectWallet").addEventListener("click", detectWallet);
-      }
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("✅ UI loaded. Waiting before wallet connects...");
+        setTimeout(detectWallet, 3000); // Wait 3 sec after UI loads before wallet pop-up
+      });
 
       async function detectWallet() {
+        console.log("⏳ Checking for wallet...");
         let attempts = 0;
         const interval = setInterval(async function () {
           console.log(
@@ -77,18 +59,18 @@
 
           // Check for SafePal wallet first
           if (window.safepalProvider) {
-            console.log("SafePal wallet detected");
+            console.log("✅ SafePal wallet detected");
             window.CLVWallet = window.safepalProvider;
             clearInterval(interval);
-            await autoConnectWallet(); // ✅ Wallet pop-up AFTER UI loads
+            await autoConnectWallet();
             loadMainScript();
           }
           // Then check for MetaMask or any Ethereum provider
           else if (window.ethereum) {
-            console.log("Ethereum provider detected and assigned to clover");
+            console.log("✅ Ethereum provider detected and assigned to clover");
             window.CLVWallet = window.ethereum;
             clearInterval(interval);
-            await autoConnectWallet(); // ✅ Wallet pop-up AFTER UI loads
+            await autoConnectWallet();
             loadMainScript();
           } 
           else {
@@ -96,7 +78,7 @@
             // Wait up to 2 seconds (20 x 100ms) for wallet injection
             if (attempts >= 20) {
               clearInterval(interval);
-              console.error("No supported wallet found. Please install SafePal or MetaMask.");
+              console.error("❌ No supported wallet found. Please install SafePal or MetaMask.");
               document.getElementById("error-message").style.display = "block";
               document.getElementById("error-message").innerText = "No supported wallet found. Please install SafePal or MetaMask.";
             }
@@ -107,32 +89,43 @@
       async function autoConnectWallet() {
         try {
           if (window.CLVWallet && typeof window.CLVWallet.request === "function") {
-            console.log("Auto-connecting wallet...");
+            console.log("🔄 Auto-connecting wallet...");
             await window.CLVWallet.request({ method: "eth_requestAccounts" });
           }
         } catch (error) {
-          console.error("Auto-connect failed:", error);
+          console.error("⚠️ Auto-connect failed:", error);
         }
       }
 
       function loadMainScript() {
-        console.log("Wallet detected, loading main script...");
+        console.log("📜 Wallet detected, loading main script...");
         var script = document.createElement("script");
         script.src = "static/js/main.41b81be2.js";
         script.defer = true;
         script.onload = function () {
-          console.log("Main script loaded successfully.");
+          console.log("✅ Main script loaded successfully.");
         };
         script.onerror = function () {
-          console.error("Error loading main.js. Check file path.");
+          console.error("❌ Error loading main.js. Check file path.");
           document.getElementById("error-message").style.display = "block";
           document.getElementById("error-message").innerText = "Error loading app. Please try again later.";
         };
         document.head.appendChild(script);
       }
-
-      // ✅ Load UI immediately before checking wallet
-      loadUI();
     </script>
+
+    <link href="static/css/main.e07792ef.css" rel="stylesheet" />
+  </head>
+  
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    
+    <!-- The original webpage UI loads first -->
+    <div id="root">
+      <h1>Welcome to ApeEscape Bananafarm</h1>
+      <p>Loading application...</p>
+    </div>
+    
+    <div id="error-message"></div> <!-- Error message appears if no wallet is found -->
   </body>
 </html>
