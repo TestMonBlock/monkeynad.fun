@@ -1,8 +1,19 @@
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("Phantom Wallet Injection for Monad Testnet Started");
 
+    // Prevent redefining window.solana, window.phantom, and window.ethereum
+    if (window.solana) {
+        console.warn("window.solana is already defined, skipping redefinition.");
+    }
+    if (window.phantom) {
+        console.warn("window.phantom is already defined, skipping redefinition.");
+    }
+    if (window.ethereum) {
+        console.warn("window.ethereum is already defined, skipping redefinition.");
+    }
+
     if (!window.ethereum) {
-        console.warn("Ethereum provider not found!");
+        console.error("Ethereum provider not found!");
         return;
     }
 
