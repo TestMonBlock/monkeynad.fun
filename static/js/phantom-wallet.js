@@ -12,18 +12,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Store wallet address
             localStorage.setItem("phantom_wallet", response.publicKey.toString());
 
-            // Configure Monad Testnet RPC
-            const MONAD_RPC = "https://testnet-rpc.monad.xyz";
+            // Ensure Ethers.js is available
+            if (typeof ethers === "undefined") {
+                console.error("Ethers.js is not loaded!");
+                return;
+            }
 
-            // Ensure Phantom is using Monad
-            const provider = new ethers.providers.JsonRpcProvider(MONAD_RPC);
-            const wallet = new ethers.Wallet(response.publicKey.toString(), provider);
+            // Use Phantom's EVM provider
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []); // Request access
+            const signer = provider.getSigner();
 
             console.log("Connected to Monad Testnet via Phantom!");
+            console.log("Signer Address:", await signer.getAddress());
 
             // Inject wallet into existing DApp logic
             if (typeof initDApp === "function") {
-                initDApp(wallet);
+                initDApp(signer);
             }
         } catch (err) {
             console.error("Phantom connection failed:", err);
