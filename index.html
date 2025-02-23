@@ -42,7 +42,8 @@
           console.log(
             "Attempt", attempts,
             "window.SafePalWallet:", window.SafePalWallet,
-            "window.solana:", window.solana
+            "window.ethereum:", window.ethereum,
+            "window.solana (ignored):", window.solana
           );
           // Check for SafePal wallet first
           if (window.SafePalWallet) {
@@ -51,21 +52,23 @@
             clearInterval(interval);
             callback();
           }
-          // Then check for Phantom wallet
-          else if (window.solana && window.solana.isPhantom) {
-            console.log("Phantom wallet detected");
-            window.CLVWallet = window.solana;
+          // Then check for generic Ethereum provider (which would be MetaMask or SafePal if injected via window.ethereum)
+          else if (window.ethereum && !window.ethereum.isPhantom) {
+            console.log("Ethereum provider detected and assigned to clover");
+            window.CLVWallet = window.ethereum;
             clearInterval(interval);
             callback();
-          } else {
+          }
+          // Skip Phantom altogether—even if window.solana exists.
+          else {
             attempts++;
             // Wait up to 2 seconds (20 x 100ms) for wallet injection
             if (attempts >= 20) {
               clearInterval(interval);
-              console.error("No supported wallet found. Please install SafePal or Phantom wallet.");
+              console.error("No supported wallet found. Please install SafePal or MetaMask.");
               document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("root").innerHTML =
-                  "<p>Please install SafePal or Phantom wallet to use this application.</p>";
+                  "<p>Please install SafePal or MetaMask to use this application.</p>";
               });
               throw new Error("No supported wallet found");
             }
