@@ -33,7 +33,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (err) {
             console.error("Phantom connection failed:", err);
         }
+    } else if (window.ethereum) {
+        console.log("MetaMask detected!");
+
+        try {
+            // Connect MetaMask
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            console.log("Connected to MetaMask:", accounts[0]);
+
+            // Store wallet address
+            localStorage.setItem("metamask_wallet", accounts[0]);
+
+            // Use MetaMask provider
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+
+            console.log("Connected to Monad Testnet via MetaMask!");
+            console.log("Signer Address:", await signer.getAddress());
+
+            if (typeof initDApp === "function") {
+                initDApp(signer);
+            }
+        } catch (err) {
+            console.error("MetaMask connection failed:", err);
+        }
     } else {
-        console.warn("Phantom Wallet not found! Please install it.");
+        console.warn("No compatible wallet found! Please install Phantom or MetaMask.");
     }
 });
