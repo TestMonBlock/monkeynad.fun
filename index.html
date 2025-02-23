@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Set base for GitHub Pages (replace 'monkeynad.fun' with your repo name if different) -->
+    <!-- Set base for GitHub Pages (adjust 'monkeynad.fun' if needed) -->
     <base href="/monkeynad.fun/">
     <link rel="icon" href="favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,28 +33,48 @@
       }
     </style>
     <title>ApeEscape Bananafarm</title>
-    <!-- Wallet detection script -->
+    <!-- Wallet detection and dynamic script loader -->
     <script>
-      // Detect Phantom wallet and assign to window.CLVWallet
-      if (window.solana && window.solana.isPhantom) {
-        console.log("Phantom wallet detected");
-        window.CLVWallet = window.solana;
+      function detectWallet(callback) {
+        let attempts = 0;
+        const interval = setInterval(function () {
+          // Check for Phantom wallet
+          if (window.solana && window.solana.isPhantom) {
+            console.log("Phantom wallet detected");
+            window.CLVWallet = window.solana;
+            clearInterval(interval);
+            callback();
+          }
+          // Check for SafePal wallet (adjust this check if SafePal injects differently)
+          else if (window.SafePalWallet) {
+            console.log("SafePal wallet detected");
+            window.CLVWallet = window.SafePalWallet;
+            clearInterval(interval);
+            callback();
+          } else {
+            attempts++;
+            // Wait up to 2 seconds (20 x 100ms) for the wallet to be injected
+            if (attempts >= 20) {
+              clearInterval(interval);
+              console.error("No supported wallet found. Please install Phantom or SafePal wallet.");
+              document.addEventListener("DOMContentLoaded", function () {
+                document.getElementById("root").innerHTML =
+                  "<p>Please install Phantom or SafePal wallet to use this application.</p>";
+              });
+              throw new Error("No supported wallet found");
+            }
+          }
+        }, 100);
       }
-      // Else, detect SafePal wallet and assign to window.CLVWallet
-      else if (window.SafePalWallet) {
-        console.log("SafePal wallet detected");
-        window.CLVWallet = window.SafePalWallet;
-      } else {
-        console.error("No supported wallet found. Please install Phantom or SafePal wallet.");
-        document.addEventListener("DOMContentLoaded", function () {
-          document.getElementById("root").innerHTML =
-            "<p>Please install Phantom or SafePal wallet to use this application.</p>";
-        });
-        throw new Error("No supported wallet found");
-      }
+      
+      detectWallet(function () {
+        console.log("Wallet detected, loading main script...");
+        var script = document.createElement("script");
+        script.src = "static/js/main.41b81be2.js";
+        script.defer = true;
+        document.head.appendChild(script);
+      });
     </script>
-    <!-- Load main JS bundle -->
-    <script defer src="static/js/main.41b81be2.js"></script>
     <link href="static/css/main.e07792ef.css" rel="stylesheet" />
   </head>
   <body>
