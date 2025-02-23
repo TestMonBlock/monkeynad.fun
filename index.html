@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- Set base for GitHub Pages (adjust 'monkeynad.fun' if needed) -->
     <base href="/monkeynad.fun/">
     <link rel="icon" href="favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap"
       rel="stylesheet"
     />
     <style>
@@ -31,51 +30,69 @@
       body {
         font-family: "PoseyTextured", Montserrat, sans-serif;
       }
+      #error-message {
+        display: none;
+        color: red;
+        text-align: center;
+        font-size: 18px;
+        margin-top: 20px;
+      }
     </style>
     <title>ApeEscape Bananafarm</title>
+    
     <!-- Wallet detection and dynamic script loader -->
     <script>
       console.log("Starting wallet detection...");
       function detectWallet(callback) {
         let attempts = 0;
-        const interval = setInterval(function () {
+        const interval = setInterval(async function () {
           console.log(
             "Attempt", attempts,
             "window.safepalProvider:", window.safepalProvider,
-            "window.ethereum:", window.ethereum,
-            "window.solana (ignored):", window.solana
+            "window.ethereum:", window.ethereum
           );
+
           // Check for SafePal wallet first
           if (window.safepalProvider) {
             console.log("SafePal wallet detected");
             window.CLVWallet = window.safepalProvider;
             clearInterval(interval);
+            await autoConnectWallet();  // Auto-popup for first-time users
             callback();
           }
-          // Then check for generic Ethereum provider (e.g., MetaMask)
-          else if (window.ethereum && !window.ethereum.isPhantom) {
+          // Then check for MetaMask or any generic Ethereum provider
+          else if (window.ethereum) {
             console.log("Ethereum provider detected and assigned to clover");
             window.CLVWallet = window.ethereum;
             clearInterval(interval);
+            await autoConnectWallet();  // Auto-popup for first-time users
             callback();
-          }
-          // Skip Phantom altogether—even if window.solana exists.
+          } 
           else {
             attempts++;
             // Wait up to 2 seconds (20 x 100ms) for wallet injection
             if (attempts >= 20) {
               clearInterval(interval);
               console.error("No supported wallet found. Please install SafePal or MetaMask.");
-              document.addEventListener("DOMContentLoaded", function () {
-                document.getElementById("root").innerHTML =
-                  "<p>Please install SafePal or MetaMask to use this application.</p>";
-              });
-              throw new Error("No supported wallet found");
+              document.getElementById("error-message").style.display = "block";
+              document.getElementById("error-message").innerText = "No supported wallet found. Please install SafePal or MetaMask.";
+              return;
             }
           }
         }, 100);
       }
-      
+
+      async function autoConnectWallet() {
+        try {
+          if (window.CLVWallet && typeof window.CLVWallet.request === "function") {
+            console.log("Auto-connecting wallet...");
+            await window.CLVWallet.request({ method: "eth_requestAccounts" });
+          }
+        } catch (error) {
+          console.error("Auto-connect failed:", error);
+        }
+      }
+
       detectWallet(function () {
         console.log("Wallet detected, loading main script...");
         var script = document.createElement("script");
@@ -84,10 +101,13 @@
         document.head.appendChild(script);
       });
     </script>
+    
     <link href="static/css/main.e07792ef.css" rel="stylesheet" />
   </head>
+  
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <div id="error-message"></div>  <!-- Wallet error message appears here -->
   </body>
 </html>
