@@ -35,9 +35,11 @@
     <title>ApeEscape Bananafarm</title>
     <!-- Wallet detection and dynamic script loader -->
     <script>
+      console.log("Starting wallet detection...");
       function detectWallet(callback) {
         let attempts = 0;
         const interval = setInterval(function () {
+          console.log("Attempt", attempts, "window.solana:", window.solana, "window.SafePalWallet:", window.SafePalWallet);
           // Check for Phantom wallet
           if (window.solana && window.solana.isPhantom) {
             console.log("Phantom wallet detected");
@@ -45,7 +47,7 @@
             clearInterval(interval);
             callback();
           }
-          // Check for SafePal wallet (adjust this check if SafePal injects differently)
+          // Check for SafePal wallet (update this check per SafePal documentation if needed)
           else if (window.SafePalWallet) {
             console.log("SafePal wallet detected");
             window.CLVWallet = window.SafePalWallet;
@@ -53,7 +55,7 @@
             callback();
           } else {
             attempts++;
-            // Wait up to 2 seconds (20 x 100ms) for the wallet to be injected
+            // Wait up to 2 seconds (20 x 100ms) for wallet injection
             if (attempts >= 20) {
               clearInterval(interval);
               console.error("No supported wallet found. Please install Phantom or SafePal wallet.");
