@@ -1,17 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
     console.log("Phantom Wallet Injection for Monad Testnet Started");
 
-    // Prevent redefining window.solana, window.phantom, and window.ethereum
-    if (window.solana) {
-        console.warn("window.solana is already defined, skipping redefinition.");
-    }
-    if (window.phantom) {
-        console.warn("window.phantom is already defined, skipping redefinition.");
-    }
-    if (window.ethereum) {
-        console.warn("window.ethereum is already defined, skipping redefinition.");
-    }
-
     if (!window.ethereum) {
         console.error("Ethereum provider not found!");
         return;
@@ -29,6 +18,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
             blockExplorerUrls: ["https://testnet.monadexplorer.com"],
         };
+
+        // Prevent redefining window.solana, window.phantom, and window.ethereum
+        if (window.solana) {
+            console.warn("window.solana is already defined, skipping redefinition.");
+        }
+        if (window.phantom) {
+            console.warn("window.phantom is already defined, skipping redefinition.");
+        }
+        if (window.ethereum) {
+            console.warn("window.ethereum is already defined, skipping redefinition.");
+        }
 
         // Get current chain ID
         const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         params: [MONAD_TESTNET_PARAMS],
                     });
                 } else {
-                    throw switchError;
+                    console.error("Failed to switch network:", switchError);
                 }
             }
         }
