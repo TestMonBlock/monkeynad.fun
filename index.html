@@ -167,7 +167,7 @@
             const accounts = await provider.request({ method: "eth_requestAccounts" });
             console.log("✅ Wallet connected:", accounts[0]);
 
-            localStorage.setItem("wallet_address", accounts[0]);
+            sessionStorage.setItem("wallet_connected", walletId);
 
             // Update the UI
             const existingConnectBtn = document.querySelector("[data-wallet-connect]");
@@ -182,10 +182,10 @@
       }
 
       async function disconnectWallet() {
-        console.log("🔴 Disconnecting wallet...");
-        localStorage.removeItem("wallet_address");
+        console.log("🔴 FULLY Disconnecting wallet...");
+        sessionStorage.removeItem("wallet_connected");
 
-        // Force MetaMask & SafePal to forget connection
+        // Force SafePal, MetaMask & TrustWallet to revoke access
         if (window.ethereum && window.ethereum.isMetaMask) {
           await window.ethereum.request({
             method: "wallet_revokePermissions",
@@ -196,14 +196,14 @@
           window.safepalProvider.disconnect();
         }
 
-        // Reset button state
+        // Reset UI and force a fresh wallet selection next time
         const existingConnectBtn = document.querySelector("[data-wallet-connect]");
         if (existingConnectBtn) {
           existingConnectBtn.innerText = "Connect Wallet";
           existingConnectBtn.onclick = showWalletPopup;
         }
 
-        // 🔄 Reload the page to fully reset session
+        // Hard refresh to reset everything
         setTimeout(() => {
           location.reload();
         }, 500);
