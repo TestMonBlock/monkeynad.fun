@@ -93,7 +93,6 @@
       document.addEventListener("DOMContentLoaded", function () {
         console.log("✅ Page loaded. Wallet connection ready...");
         
-        // Bind existing UI connect button
         const existingConnectBtn = document.querySelector("[data-wallet-connect]");
         if (existingConnectBtn) {
           existingConnectBtn.addEventListener("click", showWalletPopup);
@@ -151,6 +150,8 @@
         document.getElementById("wallet-popup").style.display = "none";
         document.getElementById("overlay").style.display = "none";
 
+        await forceWalletDisconnect(); // Ensure full disconnect before connecting again.
+
         let provider = null;
 
         if (walletId === "safepal") {
@@ -169,7 +170,6 @@
 
             sessionStorage.setItem("wallet_connected", walletId);
 
-            // Update the UI
             const existingConnectBtn = document.querySelector("[data-wallet-connect]");
             if (existingConnectBtn) {
               existingConnectBtn.innerText = "Disconnect";
@@ -181,32 +181,30 @@
         }
       }
 
-      async function disconnectWallet() {
+      async function forceWalletDisconnect() {
         console.log("🔴 FULLY Disconnecting wallet...");
+
         sessionStorage.removeItem("wallet_connected");
 
-        // Force SafePal, MetaMask & TrustWallet to revoke access
         if (window.ethereum && window.ethereum.isMetaMask) {
           await window.ethereum.request({
             method: "wallet_revokePermissions",
             params: [{ eth_accounts: {} }]
           }).catch(err => console.log("MetaMask revoke failed:", err));
         }
+
         if (window.safepalProvider) {
           window.safepalProvider.disconnect();
         }
 
-        // Reset UI and force a fresh wallet selection next time
-        const existingConnectBtn = document.querySelector("[data-wallet-connect]");
-        if (existingConnectBtn) {
-          existingConnectBtn.innerText = "Connect Wallet";
-          existingConnectBtn.onclick = showWalletPopup;
-        }
-
-        // Hard refresh to reset everything
         setTimeout(() => {
           location.reload();
         }, 500);
+      }
+
+      function disconnectWallet() {
+        console.log("🔴 Disconnecting wallet...");
+        forceWalletDisconnect();
       }
     </script>
 
