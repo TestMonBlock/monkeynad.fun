@@ -30,23 +30,47 @@
       body {
         font-family: "PoseyTextured", Montserrat, sans-serif;
       }
-      .wallet-container {
+      #wallet-popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         text-align: center;
-        margin-top: 20px;
+        width: 300px;
+        z-index: 9999;
       }
-      #connect-btn {
-        padding: 10px 20px;
-        font-size: 16px;
-        background: #007bff;
-        color: white;
-        border: none;
+      .wallet-option {
+        display: flex;
+        align-items: center;
+        background: #f4f4f4;
+        padding: 10px;
         border-radius: 8px;
         cursor: pointer;
+        margin: 10px 0;
+        padding: 10px;
       }
-      #wallet-address {
-        margin-top: 10px;
-        font-size: 14px;
-        color: #333;
+      .wallet-option:hover {
+        background: #ddd;
+      }
+      .wallet-option img {
+        width: 40px;
+        height: 40px;
+        margin-right: 10px;
+      }
+      #overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
       }
     </style>
     <title>ApeEscape Bananafarm</title>
@@ -57,113 +81,114 @@
 
     <div id="root"></div>
 
-    <!-- Wallet Connect Section -->
-    <div class="wallet-container">
-      <button id="connect-btn">Connect Wallet</button>
-      <p id="wallet-address"></p>
+    <!-- Wallet Selection Pop-up -->
+    <div id="overlay"></div>
+    <div id="wallet-popup">
+      <h2>Select a Wallet</h2>
+      <div id="wallet-list"></div>
     </div>
 
-    <!-- JavaScript for Wallet Connection -->
+    <!-- JavaScript for Wallet Selection -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        console.log("✅ Page loaded. Checking wallet connection...");
+        console.log("✅ Page loaded. Wallet connection ready...");
         
-        // Check if user was already connected
-        checkExistingWallet();
-
-        // Bind connect button to wallet detection
-        const connectBtn = document.getElementById("connect-btn");
-        if (connectBtn) {
-          connectBtn.addEventListener("click", detectWallet);
-        } else {
-          console.error("❌ Connect button not found!");
+        // Bind existing UI connect button
+        const existingConnectBtn = document.querySelector("[data-wallet-connect]");
+        if (existingConnectBtn) {
+          existingConnectBtn.addEventListener("click", showWalletPopup);
         }
       });
 
-      async function detectWallet() {
-        console.log("🔍 Detecting wallets...");
+      function showWalletPopup() {
+        let wallets = detectWallets();
+
+        if (wallets.length > 0) {
+          document.getElementById("wallet-list").innerHTML = wallets
+            .map(
+              (wallet) => `
+              <div class="wallet-option" onclick="connectWallet('${wallet.id}')">
+                <img src="${wallet.icon}" alt="${wallet.name}" />
+                <span>${wallet.name}</span>
+              </div>`
+            )
+            .join("");
+          document.getElementById("wallet-popup").style.display = "block";
+          document.getElementById("overlay").style.display = "block";
+        } else {
+          alert("No supported wallet found. Please install SafePal, MetaMask, or Trust Wallet.");
+        }
+      }
+
+      function detectWallets() {
+        let availableWallets = [];
+
+        if (window.safepalProvider) {
+          availableWallets.push({
+            id: "safepal",
+            name: "SafePal",
+            icon: "https://safepal.io/favicon.ico",
+          });
+        }
+        if (window.ethereum && window.ethereum.isMetaMask) {
+          availableWallets.push({
+            id: "metamask",
+            name: "MetaMask",
+            icon: "https://cdn.jsdelivr.net/gh/MetaMask/brand-resources/metamask-fox.svg",
+          });
+        }
+        if (window.trustwallet) {
+          availableWallets.push({
+            id: "trustwallet",
+            name: "Trust Wallet",
+            icon: "https://trustwallet.com/assets/images/favicon.ico",
+          });
+        }
+        return availableWallets;
+      }
+
+      async function connectWallet(walletId) {
+        document.getElementById("wallet-popup").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
+
         let provider = null;
 
-        // Prioritize SafePal, then MetaMask
-        if (window.safepalProvider) {
+        if (walletId === "safepal") {
           provider = window.safepalProvider;
-        } else if (window.ethereum) {
+        } else if (walletId === "metamask") {
           provider = window.ethereum;
+        } else if (walletId === "trustwallet") {
+          provider = window.trustwallet;
         }
 
-        if (!provider) {
-          console.error("❌ No supported wallet found.");
-          alert("No supported wallet found. Please install SafePal or MetaMask.");
-          return;
-        }
-
-        try {
-          console.log("🔄 Requesting wallet connection...");
-          const accounts = await provider.request({ method: "eth_requestAccounts" });
-
-          if (accounts.length > 0) {
+        if (provider && provider.request) {
+          try {
+            console.log(`🔄 Connecting to ${walletId}...`);
+            const accounts = await provider.request({ method: "eth_requestAccounts" });
             console.log("✅ Wallet connected:", accounts[0]);
-            localStorage.setItem("wallet_connected", "true");
-            localStorage.setItem("wallet_address", accounts[0]);
 
-            // Update button text and wallet address
-            updateButtonState(accounts[0]);
-
-            // 🔄 Auto-refresh after successful connection
-            setTimeout(() => {
-              location.reload();
-            }, 500);
+            // Update the UI
+            const existingConnectBtn = document.querySelector("[data-wallet-connect]");
+            if (existingConnectBtn) {
+              existingConnectBtn.innerText = "Disconnect";
+              existingConnectBtn.onclick = disconnectWallet;
+            }
+          } catch (error) {
+            console.error(`⚠️ Connection failed for ${walletId}:`, error);
           }
-        } catch (error) {
-          console.error("⚠️ Wallet connection failed:", error);
-        }
-      }
-
-      function checkExistingWallet() {
-        const savedWallet = localStorage.getItem("wallet_connected");
-        const savedAddress = localStorage.getItem("wallet_address");
-
-        if (savedWallet && savedAddress) {
-          console.log("🔄 Restoring wallet:", savedWallet);
-          updateButtonState(savedAddress);
-        }
-      }
-
-      function updateButtonState(walletAddress) {
-        const connectBtn = document.getElementById("connect-btn");
-        if (connectBtn) {
-          connectBtn.innerText = "Disconnect";
-          connectBtn.onclick = disconnectWallet;
-        }
-
-        const walletAddressDisplay = document.getElementById("wallet-address");
-        if (walletAddressDisplay) {
-          walletAddressDisplay.innerText = `Connected: ${walletAddress}`;
         }
       }
 
       function disconnectWallet() {
         console.log("🔴 Disconnecting wallet...");
-        localStorage.removeItem("wallet_connected");
         localStorage.removeItem("wallet_address");
 
         // Reset button state
-        const connectBtn = document.getElementById("connect-btn");
-        if (connectBtn) {
-          connectBtn.innerText = "Connect Wallet";
-          connectBtn.onclick = detectWallet;
+        const existingConnectBtn = document.querySelector("[data-wallet-connect]");
+        if (existingConnectBtn) {
+          existingConnectBtn.innerText = "Connect Wallet";
+          existingConnectBtn.onclick = showWalletPopup;
         }
-
-        // Clear displayed wallet address
-        const walletAddressDisplay = document.getElementById("wallet-address");
-        if (walletAddressDisplay) {
-          walletAddressDisplay.innerText = "";
-        }
-
-        // 🔄 Force refresh to fully reset connection state
-        setTimeout(() => {
-          location.reload();
-        }, 500);
       }
     </script>
 
