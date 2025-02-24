@@ -167,6 +167,8 @@
             const accounts = await provider.request({ method: "eth_requestAccounts" });
             console.log("✅ Wallet connected:", accounts[0]);
 
+            localStorage.setItem("wallet_address", accounts[0]);
+
             // Update the UI
             const existingConnectBtn = document.querySelector("[data-wallet-connect]");
             if (existingConnectBtn) {
@@ -179,9 +181,17 @@
         }
       }
 
-      function disconnectWallet() {
+      async function disconnectWallet() {
         console.log("🔴 Disconnecting wallet...");
         localStorage.removeItem("wallet_address");
+
+        // Force MetaMask & SafePal to forget connection
+        if (window.ethereum && window.ethereum.isMetaMask) {
+          await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
+        }
+        if (window.safepalProvider) {
+          window.safepalProvider.disconnect();
+        }
 
         // Reset button state
         const existingConnectBtn = document.querySelector("[data-wallet-connect]");
@@ -189,6 +199,11 @@
           existingConnectBtn.innerText = "Connect Wallet";
           existingConnectBtn.onclick = showWalletPopup;
         }
+
+        // Force refresh to clear wallet session
+        setTimeout(() => {
+          location.reload();
+        }, 500);
       }
     </script>
 
