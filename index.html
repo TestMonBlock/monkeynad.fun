@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -30,82 +30,188 @@
       body {
         font-family: "PoseyTextured", Montserrat, sans-serif;
       }
-      #error-message {
+      #wallet-popup {
         display: none;
-        color: red;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         text-align: center;
-        font-size: 18px;
-        margin-top: 20px;
+        width: 300px;
+        z-index: 9999;
+      }
+      .wallet-option {
+        display: flex;
+        align-items: center;
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 10px 0;
+        padding: 10px;
+      }
+      .wallet-option:hover {
+        background: #ddd;
+      }
+      .wallet-option img {
+        width: 40px;
+        height: 40px;
+        margin-right: 10px;
+      }
+      #overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
       }
     </style>
     <title>ApeEscape Bananafarm</title>
-
-    <!-- Ensure the full website loads first -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        console.log("✅ Full website loaded. Wallet popup will show in 3 seconds...");
-        setTimeout(detectWallet, 3000); // Wallet pop-up shows 3 seconds AFTER full site loads
-      });
-
-      async function detectWallet() {
-        console.log("⏳ Checking for wallet...");
-        let attempts = 0;
-        const interval = setInterval(async function () {
-          console.log(
-            "Attempt", attempts,
-            "window.safepalProvider:", window.safepalProvider,
-            "window.ethereum:", window.ethereum
-          );
-
-          // Check for SafePal wallet first
-          if (window.safepalProvider) {
-            console.log("✅ SafePal wallet detected");
-            window.CLVWallet = window.safepalProvider;
-            clearInterval(interval);
-            await autoConnectWallet();
-          }
-          // Then check for MetaMask or any Ethereum provider
-          else if (window.ethereum) {
-            console.log("✅ Ethereum provider detected and assigned to clover");
-            window.CLVWallet = window.ethereum;
-            clearInterval(interval);
-            await autoConnectWallet();
-          } 
-          else {
-            attempts++;
-            // Wait up to 2 seconds (20 x 100ms) for wallet injection
-            if (attempts >= 20) {
-              clearInterval(interval);
-              console.error("❌ No supported wallet found. Please install SafePal or MetaMask.");
-              document.getElementById("error-message").style.display = "block";
-              document.getElementById("error-message").innerText = "No supported wallet found. Please install SafePal or MetaMask.";
-            }
-          }
-        }, 100);
-      }
-
-      async function autoConnectWallet() {
-        try {
-          if (window.CLVWallet && typeof window.CLVWallet.request === "function") {
-            console.log("🔄 Auto-connecting wallet...");
-            await window.CLVWallet.request({ method: "eth_requestAccounts" });
-          }
-        } catch (error) {
-          console.error("⚠️ Auto-connect failed:", error);
-        }
-      }
-    </script>
-
-    <!-- Load the main JavaScript file immediately -->
-    <script defer src="static/js/main.41b81be2.js"></script>
-    <link href="static/css/main.e07792ef.css" rel="stylesheet" />
   </head>
 
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
 
-    <div id="root"></div> <!-- The entire website loads immediately here -->
+    <div id="root"></div>
 
-    <div id="error-message"></div> <!-- Error message appears if no wallet is found -->
+    <!-- Wallet Selection Pop-up -->
+    <div id="overlay"></div>
+    <div id="wallet-popup">
+      <h2>Select a Wallet</h2>
+      <div id="wallet-list"></div>
+    </div>
+
+    <!-- JavaScript for Wallet Selection -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("✅ Page loaded. Wallet connection ready...");
+        
+        const existingConnectBtn = document.querySelector("[data-wallet-connect]");
+        if (existingConnectBtn) {
+          existingConnectBtn.addEventListener("click", showWalletPopup);
+        }
+      });
+
+      function showWalletPopup() {
+        forceWalletDisconnect(); // Fully disconnect before allowing new selection
+
+        let wallets = detectWallets();
+
+        if (wallets.length > 0) {
+          document.getElementById("wallet-list").innerHTML = wallets
+            .map(
+              (wallet) => `
+              <div class="wallet-option" onclick="connectWallet('${wallet.id}')">
+                <img src="${wallet.icon}" alt="${wallet.name}" />
+                <span>${wallet.name}</span>
+              </div>`
+            )
+            .join("");
+          document.getElementById("wallet-popup").style.display = "block";
+          document.getElementById("overlay").style.display = "block";
+        } else {
+          alert("No supported wallet found. Please install SafePal, MetaMask, or Trust Wallet.");
+        }
+      }
+
+      function detectWallets() {
+        let availableWallets = [];
+
+        if (window.safepalProvider) {
+          availableWallets.push({
+            id: "safepal",
+            name: "SafePal",
+            icon: "https://safepal.io/favicon.ico",
+          });
+        }
+        if (window.ethereum && window.ethereum.isMetaMask) {
+          availableWallets.push({
+            id: "metamask",
+            name: "MetaMask",
+            icon: "https://cdn.jsdelivr.net/gh/MetaMask/brand-resources/metamask-fox.svg",
+          });
+        }
+        if (window.trustwallet) {
+          availableWallets.push({
+            id: "trustwallet",
+            name: "Trust Wallet",
+            icon: "https://trustwallet.com/assets/images/favicon.ico",
+          });
+        }
+        return availableWallets;
+      }
+
+      async function connectWallet(walletId) {
+        document.getElementById("wallet-popup").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
+
+        await forceWalletDisconnect(); // Ensure full disconnect before connecting again.
+
+        let provider = null;
+
+        if (walletId === "safepal") {
+          provider = window.safepalProvider;
+        } else if (walletId === "metamask") {
+          provider = window.ethereum;
+        } else if (walletId === "trustwallet") {
+          provider = window.trustwallet;
+        }
+
+        if (provider && provider.request) {
+          try {
+            console.log(`🔄 Connecting to ${walletId}...`);
+            const accounts = await provider.request({ method: "eth_requestAccounts" });
+            console.log("✅ Wallet connected:", accounts[0]);
+
+            sessionStorage.setItem("wallet_connected", walletId);
+
+            const existingConnectBtn = document.querySelector("[data-wallet-connect]");
+            if (existingConnectBtn) {
+              existingConnectBtn.innerText = "Disconnect";
+              existingConnectBtn.onclick = disconnectWallet;
+            }
+          } catch (error) {
+            console.error(`⚠️ Connection failed for ${walletId}:`, error);
+          }
+        }
+      }
+
+      async function forceWalletDisconnect() {
+        console.log("🔴 FULLY Disconnecting wallet...");
+
+        sessionStorage.removeItem("wallet_connected");
+
+        if (window.ethereum && window.ethereum.isMetaMask) {
+          await window.ethereum.request({
+            method: "wallet_revokePermissions",
+            params: [{ eth_accounts: {} }]
+          }).catch(err => console.log("MetaMask revoke failed:", err));
+        }
+
+        if (window.safepalProvider) {
+          window.safepalProvider.disconnect();
+        }
+
+        setTimeout(() => {
+          location.reload();
+        }, 500);
+      }
+
+      function disconnectWallet() {
+        console.log("🔴 Disconnecting wallet...");
+        forceWalletDisconnect();
+      }
+    </script>
+
+    <!-- Load the main JavaScript file -->
+    <script defer src="static/js/main.41b81be2.js"></script>
+    <link href="static/css/main.e07792ef.css" rel="stylesheet" />
   </body>
 </html>
