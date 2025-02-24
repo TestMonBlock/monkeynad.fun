@@ -39,12 +39,12 @@
       }
     </style>
     <title>ApeEscape Bananafarm</title>
-    
-    <!-- Load Main UI Before Wallet Connect -->
+
+    <!-- Ensure the full website loads first -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        console.log("✅ UI loaded. Waiting before wallet connects...");
-        setTimeout(detectWallet, 3000); // Wait 3 sec after UI loads before wallet pop-up
+        console.log("✅ Full website loaded. Wallet popup will show in 3 seconds...");
+        setTimeout(detectWallet, 3000); // Wallet pop-up shows 3 seconds AFTER full site loads
       });
 
       async function detectWallet() {
@@ -63,7 +63,6 @@
             window.CLVWallet = window.safepalProvider;
             clearInterval(interval);
             await autoConnectWallet();
-            loadMainScript();
           }
           // Then check for MetaMask or any Ethereum provider
           else if (window.ethereum) {
@@ -71,7 +70,6 @@
             window.CLVWallet = window.ethereum;
             clearInterval(interval);
             await autoConnectWallet();
-            loadMainScript();
           } 
           else {
             attempts++;
@@ -96,36 +94,18 @@
           console.error("⚠️ Auto-connect failed:", error);
         }
       }
-
-      function loadMainScript() {
-        console.log("📜 Wallet detected, loading main script...");
-        var script = document.createElement("script");
-        script.src = "static/js/main.41b81be2.js";
-        script.defer = true;
-        script.onload = function () {
-          console.log("✅ Main script loaded successfully.");
-        };
-        script.onerror = function () {
-          console.error("❌ Error loading main.js. Check file path.");
-          document.getElementById("error-message").style.display = "block";
-          document.getElementById("error-message").innerText = "Error loading app. Please try again later.";
-        };
-        document.head.appendChild(script);
-      }
     </script>
 
+    <!-- Load the main JavaScript file immediately -->
+    <script defer src="static/js/main.41b81be2.js"></script>
     <link href="static/css/main.e07792ef.css" rel="stylesheet" />
   </head>
-  
+
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    
-    <!-- The original webpage UI loads first -->
-    <div id="root">
-      <h1>Welcome to ApeEscape Bananafarm</h1>
-      <p>Loading application...</p>
-    </div>
-    
+
+    <div id="root"></div> <!-- The entire website loads immediately here -->
+
     <div id="error-message"></div> <!-- Error message appears if no wallet is found -->
   </body>
 </html>
