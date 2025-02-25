@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <link rel="icon" href="favicon.png"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="theme-color" content="#000000"/>
+    <meta name="title" content="ApeEscape Remastered"/>
+    <meta name="description" content="ApeEscape BananaFarm"/>
+    <meta name="keywords" content="ApeEscape, BNB, DAPP, BananaFarm"/>
+    <link rel="apple-touch-icon" href="logo.png"/>
+    <meta property="og:image" content="logo.png">
+    <meta property="og:image:secure_url" content="logo.png">
+    <meta property="og:image:alt" content="ApeEscape Bananafarm">
+    <meta property="og:title" content="ApeEscape Bananafarm">
+    <meta property="og:description" content="BananaFarm">
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com/"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    
+    <style>
+        @font-face {
+            font-family: PoseyTextured;
+            src: url('poseytextured.woff2') format('woff2');
+        }
+        body {
+            font-family: PoseyTextured, Montserrat, sans-serif;
+        }
+        #wallet-message {
+            display: none;
+            padding: 15px;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            text-align: center;
+            margin: 10px auto;
+            max-width: 600px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #wallet-message ul {
+            padding: 0;
+            list-style: none;
+        }
+        #wallet-message ul li {
+            margin: 5px 0;
+        }
+        #wallet-message a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        #wallet-message a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <!-- Wallet Detection Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            function getAvailableWallet() {
+                if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
+                if (window.solflare?.isSolflare) return window.solflare;
+                if (window.backpack?.solana) return window.backpack.solana;
+                if (window.slope) return new window.Slope();
+                if (window.torus) return new window.Torus();
+                if (window.mathwallet?.solana) return window.mathwallet.solana;
+                if (window.ethereum) return window.ethereum; // MetaMask
+                return null;
+            }
+
+            const walletMessage = document.createElement("div");
+            walletMessage.id = "wallet-message";
+            document.body.prepend(walletMessage);
+
+            const wallet = getAvailableWallet();
+
+            if (!wallet) {
+                walletMessage.innerHTML = `
+                    <p><strong>No wallet detected!</strong></p>
+                    <p>Please install a compatible wallet:</p>
+                    <ul>
+                        <li><a href="https://phantom.app/" target="_blank">Phantom</a></li>
+                        <li><a href="https://solflare.com/" target="_blank">Solflare</a></li>
+                        <li><a href="https://backpack.app/" target="_blank">Backpack</a></li>
+                        <li><a href="https://metamask.io/" target="_blank">MetaMask</a></li>
+                        <li><a href="https://mathwallet.org/" target="_blank">MathWallet</a></li>
+                    </ul>
+                `;
+                walletMessage.style.display = "block";
+            }
+        });
+    </script>
+
+    <title>ApeEscape Bananafarm</title>
+
+    <!-- Minified JavaScript -->
+    <script defer="defer" src="static/js/main.38e2efdd.js"></script>
+
+    <!-- Stylesheet -->
+    <link href="static/css/main.e07792ef.css" rel="stylesheet">
+</head>
+<body>
+
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+
+</body>
+</html>
