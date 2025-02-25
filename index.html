@@ -67,29 +67,63 @@
                 if (window.torus) return new window.Torus();
                 if (window.mathwallet?.solana) return window.mathwallet.solana;
                 if (window.ethereum) return window.ethereum; // MetaMask
+                if (window.clover) return window.clover; // CLV Wallet
                 return null;
             }
 
+            function handleWalletConnection() {
+                const wallet = getAvailableWallet();
+                const walletMessage = document.getElementById("wallet-message");
+
+                if (!wallet) {
+                    console.warn("No supported wallet detected.");
+                    walletMessage.innerHTML = `
+                        <p><strong>No wallet detected!</strong></p>
+                        <p>Please install one:</p>
+                        <ul>
+                            <li><a href="https://phantom.app/" target="_blank">Phantom</a></li>
+                            <li><a href="https://solflare.com/" target="_blank">Solflare</a></li>
+                            <li><a href="https://backpack.app/" target="_blank">Backpack</a></li>
+                            <li><a href="https://metamask.io/" target="_blank">MetaMask</a></li>
+                            <li><a href="https://mathwallet.org/" target="_blank">MathWallet</a></li>
+                        </ul>
+                    `;
+                    walletMessage.style.display = "block";
+                    return;
+                }
+
+                try {
+                    wallet.connect().then(response => {
+                        console.log("Wallet Connected:", response.publicKey?.toString());
+                        walletMessage.innerHTML = `<p style="color:green;">Connected to: ${response.publicKey?.toString()}</p>`;
+                        walletMessage.style.display = "block";
+                    }).catch(error => {
+                        console.error("Wallet connection error:", error);
+                        walletMessage.innerHTML = `<p style="color:red;">Connection failed. Please try again.</p>`;
+                        walletMessage.style.display = "block";
+                    });
+                } catch (err) {
+                    console.error("Unexpected error during wallet connection:", err);
+                    walletMessage.innerHTML = `<p style="color:red;">An unexpected error occurred.</p>`;
+                    walletMessage.style.display = "block";
+                }
+            }
+
+            // Attach event to the Connect Wallet button once it's rendered by React
+            const observer = new MutationObserver(() => {
+                const connectButton = document.querySelector("[data-wallet-connect]"); // Update this if needed
+                if (connectButton) {
+                    connectButton.addEventListener("click", handleWalletConnection);
+                    observer.disconnect();
+                }
+            });
+
+            observer.observe(document.getElementById("root"), { childList: true, subtree: true });
+
+            // Create message container
             const walletMessage = document.createElement("div");
             walletMessage.id = "wallet-message";
             document.body.prepend(walletMessage);
-
-            const wallet = getAvailableWallet();
-
-            if (!wallet) {
-                walletMessage.innerHTML = `
-                    <p><strong>No wallet detected!</strong></p>
-                    <p>Please install a compatible wallet:</p>
-                    <ul>
-                        <li><a href="https://phantom.app/" target="_blank">Phantom</a></li>
-                        <li><a href="https://solflare.com/" target="_blank">Solflare</a></li>
-                        <li><a href="https://backpack.app/" target="_blank">Backpack</a></li>
-                        <li><a href="https://metamask.io/" target="_blank">MetaMask</a></li>
-                        <li><a href="https://mathwallet.org/" target="_blank">MathWallet</a></li>
-                    </ul>
-                `;
-                walletMessage.style.display = "block";
-            }
         });
     </script>
 
