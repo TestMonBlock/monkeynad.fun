@@ -56,22 +56,33 @@
         }
     </style>
 
-    <!-- Override Wallet Selection to Prevent CLV Errors -->
+    <!-- Override CLV Wallet detection to prevent errors -->
     <script>
-        window.getAvailableWallet = function() {
-            if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
-            if (window.solflare?.isSolflare) return window.solflare;
-            if (window.backpack?.solana) return window.backpack.solana;
-            if (window.slope) return new window.Slope();
-            if (window.torus) return new window.Torus();
-            if (window.mathwallet?.solana) return window.mathwallet.solana;
-            if (window.ethereum) return window.ethereum; // MetaMask
-            return null; // Do NOT default to CLV Wallet
-        };
+        // Prevents the app from defaulting to CLV Wallet
+        Object.defineProperty(window, "clover", {
+            get: function() {
+                console.warn("CLV Wallet is not available, preventing default error.");
+                return undefined; // Ensures the app does not force CLV
+            },
+            set: function(value) {
+                console.warn("Blocked CLV Wallet override:", value);
+            }
+        });
 
         document.addEventListener("DOMContentLoaded", async () => {
+            function getAvailableWallet() {
+                if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
+                if (window.solflare?.isSolflare) return window.solflare;
+                if (window.backpack?.solana) return window.backpack.solana;
+                if (window.slope) return new window.Slope();
+                if (window.torus) return new window.Torus();
+                if (window.mathwallet?.solana) return window.mathwallet.solana;
+                if (window.ethereum) return window.ethereum; // MetaMask
+                return null; // Do NOT use CLV Wallet
+            }
+
             function handleWalletConnection() {
-                const wallet = window.getAvailableWallet();
+                const wallet = getAvailableWallet();
                 const walletMessage = document.getElementById("wallet-message");
 
                 if (!wallet) {
@@ -110,7 +121,7 @@
 
             // Attach event to the Connect Wallet button once it's rendered by React
             const observer = new MutationObserver(() => {
-                const connectButton = document.querySelector("[data-wallet-connect]"); // Update if necessary
+                const connectButton = document.querySelector("[data-wallet-connect]");
                 if (connectButton) {
                     connectButton.addEventListener("click", handleWalletConnection);
                     observer.disconnect();
