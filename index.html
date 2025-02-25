@@ -56,23 +56,22 @@
         }
     </style>
 
-    <!-- Wallet Detection Script -->
+    <!-- Override Wallet Selection to Prevent CLV Errors -->
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            function getAvailableWallet() {
-                if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
-                if (window.solflare?.isSolflare) return window.solflare;
-                if (window.backpack?.solana) return window.backpack.solana;
-                if (window.slope) return new window.Slope();
-                if (window.torus) return new window.Torus();
-                if (window.mathwallet?.solana) return window.mathwallet.solana;
-                if (window.ethereum) return window.ethereum; // MetaMask
-                if (window.clover) return window.clover; // CLV Wallet
-                return null;
-            }
+        window.getAvailableWallet = function() {
+            if (window.phantom?.solana?.isPhantom) return window.phantom.solana;
+            if (window.solflare?.isSolflare) return window.solflare;
+            if (window.backpack?.solana) return window.backpack.solana;
+            if (window.slope) return new window.Slope();
+            if (window.torus) return new window.Torus();
+            if (window.mathwallet?.solana) return window.mathwallet.solana;
+            if (window.ethereum) return window.ethereum; // MetaMask
+            return null; // Do NOT default to CLV Wallet
+        };
 
+        document.addEventListener("DOMContentLoaded", async () => {
             function handleWalletConnection() {
-                const wallet = getAvailableWallet();
+                const wallet = window.getAvailableWallet();
                 const walletMessage = document.getElementById("wallet-message");
 
                 if (!wallet) {
@@ -111,7 +110,7 @@
 
             // Attach event to the Connect Wallet button once it's rendered by React
             const observer = new MutationObserver(() => {
-                const connectButton = document.querySelector("[data-wallet-connect]"); // Update this if needed
+                const connectButton = document.querySelector("[data-wallet-connect]"); // Update if necessary
                 if (connectButton) {
                     connectButton.addEventListener("click", handleWalletConnection);
                     observer.disconnect();
