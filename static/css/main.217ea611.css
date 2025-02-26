@@ -1,0 +1,463 @@
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(135deg, #2b140f, #8a3f07);
+    font-family: Inter, sans-serif;
+    margin: 0
+}
+
+#root,
+body {
+    box-sizing: border-box;
+    padding: 20px
+}
+
+#root {
+    height: 100%;
+    width: 100%
+}
+
+* {
+    box-sizing: border-box
+}
+
+body,
+html {
+    height: 100%;
+    overflow-x: hidden;
+    width: 100%
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, Courier New, monospace
+}
+
+@media (max-width:765px) {
+    #root,
+    body {
+        padding: 10px
+    }
+}
+
+.home {
+    min-height: 100vh
+}
+
+.home .container {
+    align-items: center;
+    margin: 0 auto;
+    max-width: 100%;
+    padding: 0;
+    position: relative
+}
+
+.home .container .countdownWrapper {
+    color: #febf33;
+    font-size: 16px;
+    text-align: center
+}
+
+.home .container .countdownWrapper .Countdown {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 100%
+}
+
+.home .container .countdownWrapper .Countdown .Countdown-col {
+    align-items: center;
+    color: #febf33;
+    display: flex;
+    flex-direction: row;
+    font-size: 25px;
+    justify-content: center
+}
+
+.home .container .countdownWrapper .Countdown .Countdown-col-element {
+    color: #febf33;
+    font-size: 30px
+}
+
+.home .header {
+    align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0 0
+}
+
+.home .header .walletWrapper {
+    border: 1px solid #e58f0e;
+    border-radius: 20px;
+    color: #e58f0e;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 5px 30px;
+    text-align: center;
+    width: 200px
+}
+
+.home .header .logo {
+    height: auto;
+    margin-bottom: 20px;
+    width: 150px
+}
+
+.home .header .socialMedias {
+    padding: 15px;
+    text-align: right;
+    width: 200px
+}
+
+.home .header .socialMedias a {
+    margin: 0 15px
+}
+
+.home .header .socialMedias img {
+    width: 27px
+}
+
+.home .slogan {
+    font-size: 20px;
+    line-height: 16px
+}
+
+.home .audit,
+.home .slogan {
+    color: #fff;
+    font-weight: 700;
+    text-align: center
+}
+
+.home .audit {
+    background: #e58f0e;
+    border-radius: 20px;
+    font-size: 16px;
+    margin: 20px auto;
+    padding: 10px;
+    width: 200px
+}
+
+.home .mainContent {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: flex-start;
+    margin: 50px auto 0;
+    max-width: 100%;
+    width: 800px
+}
+
+.home .mainContent .logo {
+    height: auto;
+    margin-bottom: 20px;
+    width: 200px
+}
+
+.home .mainContent .box {
+    width: calc(50% - 10px)
+}
+
+.home .mainContent .leftBox {
+    background: #e58f0e;
+    border-radius: 20px;
+    flex: 1 1;
+    padding: 20px
+}
+
+.home .mainContent .rightBox {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 20px
+}
+
+.home .mainContent .dataRow {
+    align-content: center;
+    color: #49221a;
+    display: flex;
+    font-size: 18px;
+    justify-content: space-between;
+    line-height: 35px;
+    margin: 5px 0
+}
+
+.home .mainContent .dataRow .name {
+    color: #49221a;
+    font-size: 15px;
+    font-weight: 400
+}
+
+.home .mainContent .dataRow .value {
+    color: #feec6c;
+    font-size: 16px;
+    font-weight: 600
+}
+
+.home .mainContent .ant-input-affix-wrapper {
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    background: #c6660d;
+    border: 2px solid #731c00;
+    border-radius: 40px;
+    box-shadow: none;
+    box-sizing: border-box;
+    height: 55px;
+    margin: 0;
+    position: relative
+}
+
+.home .mainContent .ant-input-affix-wrapper .ant-input-prefix,
+.home .mainContent .ant-input-affix-wrapper .ant-input-suffix {
+    color: #feec6c;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    -webkit-user-select: none;
+    user-select: none
+}
+
+.home .mainContent .ant-input-affix-wrapper .ant-input-prefix span,
+.home .mainContent .ant-input-affix-wrapper .ant-input-suffix span {
+    color: #feec6c
+}
+
+.home .mainContent .ant-input-affix-wrapper .suffix {
+    padding-right: 10px
+}
+
+.home .mainContent .ant-input-affix-wrapper .ant-input {
+    background: #0000;
+    border: none;
+    color: #feec6c;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 55px;
+    padding-left: 25px;
+    text-align: center
+}
+
+.home .mainContent .ant-input-affix-wrapper .ant-input:hover {
+    border: none !important
+}
+
+.home .mainContent .ant-input-affix-wrapper .ant-input:focus {
+    border: none !important;
+    box-shadow: none !important;
+    outline: 0
+}
+
+.home .mainContent .ant-input-affix-wrapper:not(.ant-input-affix-wrapper-disabled):hover {
+    border-color: #731c00 !important;
+    border-right-width: 2px
+}
+
+.home .mainContent .ant-input-affix-wrapper-focused {
+    border: 2px solid #731c00 !important;
+    box-shadow: none !important;
+    outline: 0
+}
+
+.home .mainContent .buyButton {
+    border: 2px solid #731c00;
+    border-radius: 30px;
+    color: #731c00;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 42px;
+    margin-top: 10px;
+    padding: 5px 0;
+    text-align: center
+}
+
+.home .mainContent .buyButton:hover {
+    border: 2px solid #feec6c;
+    color: #feec6c;
+    cursor: pointer
+}
+
+.home .mainContent .actionWrapper {
+    border-top: 1px dashed #731c00;
+    margin-top: 30px;
+    padding-top: 10px
+}
+
+.home .mainContent .actionWrapper .actionButtons {
+    align-items: center;
+    display: flex;
+    justify-content: space-between
+}
+
+.home .mainContent .actionWrapper .actionButtons div {
+    border: 2px solid #731c00;
+    border-radius: 30px;
+    color: #731c00;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 8px 0;
+    text-align: center;
+    width: calc(50% - 10px)
+}
+
+.home .mainContent .actionWrapper .actionButtons div:hover {
+    border: 2px solid #feec6c;
+    color: #feec6c;
+    cursor: pointer
+}
+
+.home .mainContent .contractInfo {
+    align-content: center;
+    background: #c6660d;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px
+}
+
+.home .mainContent .contractInfo img {
+    width: 25%
+}
+
+.home .mainContent .contractInfo .data {
+    width: 65%
+}
+
+.home .mainContent .contractInfo .data h1 {
+    color: #49221a;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 10px
+}
+
+.home .mainContent .contractInfo .data .dataRow {
+    font-size: 17px
+}
+
+.home .mainContent .referral {
+    background: #401b0b;
+    border-radius: 20px;
+    margin-top: 20px;
+    padding: 20px
+}
+
+.home .mainContent .referral h1 {
+    color: #e58f0e;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 10px
+}
+
+.home .mainContent .referral p {
+    color: #febf33
+}
+
+.home .mainContent .referral .refWrapper {
+    align-items: center;
+    display: flex;
+    justify-content: space-between
+}
+
+.home .mainContent .referral .refWrapper .referralLink {
+    flex-grow: 2;
+    max-width: 70%;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.home .mainContent .referral .refWrapper .copyButton,
+.home .mainContent .referral .refWrapper .referralLink {
+    border: 2px solid #e58f0e;
+    border-radius: 40px;
+    box-sizing: border-box;
+    color: #e58f0e;
+    padding: 5px 20px
+}
+
+.home .mainContent .referral .refWrapper .copyButton:hover {
+    border: 2px solid #feec6c;
+    color: #feec6c;
+    cursor: pointer
+}
+
+@media(max-width:765px) {
+    .home .header {
+        align-items: flex-start;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        padding: 20px 0 0
+    }
+    .home .header .walletWrapper {
+        font-size: 15px;
+        margin-left: auto;
+        padding: 5px 0;
+        width: 150px
+    }
+    .home .header .logo {
+        height: auto;
+        margin-bottom: 20px;
+        width: 100px
+    }
+    .home .header .socialMedias {
+        margin: 0 auto;
+        text-align: center;
+        width: 100%
+    }
+    .home .header .socialMedias a {
+        margin: 0 20px
+    }
+    .home .header .socialMedias img {
+        width: 30px
+    }
+    .home .slogan {
+        line-height: 20px
+    }
+    .home .mainContent {
+        align-items: center;
+        flex-direction: column;
+        gap: 10px;
+        margin: 30px auto 0
+    }
+    .home .mainContent .logo {
+        height: auto;
+        margin-bottom: 20px;
+        width: 150px
+    }
+    .home .mainContent .box {
+        width: calc(100% - 20px)
+    }
+    .home .mainContent .referral {
+        margin-top: 10px
+    }
+}
+
+.blink_me {
+    animation: blinker 2s linear 1
+}
+
+@keyframes blinker {
+    50% {
+        color: #fff;
+        transform: scale(1.1)
+    }
+}
+
+.Countdown {
+    margin: 0 auto
+}
+
+.Countdown-col {
+    display: inline-block
+}
+
+.Countdown-col-element {
+    display: inline-block;
+    font-weight: 600;
+    margin: 0
+}
+
+/*# sourceMappingURL=main.217ea611.css.map*/
