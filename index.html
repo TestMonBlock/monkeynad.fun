@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monad Testnet DApp</title>
 
-  <!-- Load ethers.js first -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.umd.min.js"></script>
+  <!-- Load Ethers.js First (Fixed Version) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
-  <!-- Load Web3Modal (Using version 1.9.4 - Stable) -->
+  <!-- Load Web3Modal (Stable Version) -->
   <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.4/dist/web3modal.min.js"></script>
 
   <!-- Load WalletConnect -->
@@ -36,9 +36,11 @@
 
     // Ensure all scripts are loaded before initializing
     function checkScriptsLoaded() {
+      console.log("Checking if all scripts are loaded...");
+
       if (typeof ethers === "undefined") {
         console.error("🚨 Ethers.js failed to load!");
-        alert("Ethers.js did not load. Refresh the page.");
+        alert("Ethers.js did not load. Refresh the page or check your internet connection.");
         return false;
       }
 
