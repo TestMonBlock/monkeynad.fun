@@ -1,1 +1,0 @@
-No Content: https://brewedbeans.money/src/views/w3m-register-account-name-view/index.ts
