@@ -12752,7 +12752,7 @@ fieldset:disabled .btn {
     font-family: Posey;
     font-style: normal;
     font-weight: 400;
-    src: local("Posey Textured"), local("Posey-Textured"), url(./static/media/PoseyTexturedRegular.a02de3fa16b08fc9c322.ttf) format("truetype"), url(./static/media/PoseyTexturedRegular.f90b562b11e3978db2dd.woff) format("woff"), url(./static/media/PoseyTexturedRegular.5e27f7a6694bd4f2413c.woff2) format("woff2")
+    src: local("Posey Textured"), local("Posey-Textured"), url(/static/media/PoseyTexturedRegular.a02de3fa16b08fc9c322.ttf) format("truetype"), url(/static/media/PoseyTexturedRegular.f90b562b11e3978db2dd.woff) format("woff"), url(/static/media/PoseyTexturedRegular.5e27f7a6694bd4f2413c.woff2) format("woff2")
 }
 
 :root {
@@ -12771,7 +12771,7 @@ fieldset:disabled .btn {
 }
 
 body {
-    background: url(./static/media/bg.339a4f37c35c36559821.webp);
+    background: url(/static/media/bg.339a4f37c35c36559821.webp);
     background-position: 50%;
     background-repeat: no-repeat;
     background-size: cover;
