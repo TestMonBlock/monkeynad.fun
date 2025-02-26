@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Monad Testnet DApp with Phantom Support</title>
-  <!-- Include ethers.js -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
-  <!-- Include WalletConnect Provider -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monad Testnet DApp</title>
+  <!-- Correct ethers.js version -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.umd.min.js"></script>
+  <!-- Correct Web3Modal version -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.8/web3modal.min.js"></script>
+  <!-- Correct WalletConnect version -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  <!-- Include Web3Modal -->
-  <script src="https://cdn.jsdelivr.net/npm/web3modal"></script>
+
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     button { margin: 5px; padding: 10px 20px; }
@@ -45,15 +47,12 @@
   </div>
 
   <script>
-    // Global variables
     let provider, signer, contract, web3Modal;
-    // Replace with your deployed contract address on Monad testnet
+
     const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
-    // Replace with your Monad testnet details
-    const MONAD_TESTNET_CHAIN_ID = "0xYOUR_CHAIN_ID"; // e.g., "0x1A4"
-    const MONAD_TESTNET_RPC_URL = "YOUR_MONAD_TESTNET_RPC_URL";
-    
-    // Minimal ABI for the contract functions
+    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Example Chain ID, replace with the correct one
+    const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with actual Monad testnet RPC
+
     const contractABI = [
       "function hatchEggs(address ref) public",
       "function sellEggs() public",
@@ -63,7 +62,6 @@
       "function beanRewards(address adr) public view returns(uint256)"
     ];
 
-    // Initialize Web3Modal with WalletConnect support
     function init() {
       const providerOptions = {
         walletconnect: {
@@ -75,13 +73,13 @@
           }
         }
       };
-      web3Modal = new Web3Modal({
+
+      web3Modal = new window.Web3Modal.default({
         cacheProvider: false,
         providerOptions
       });
     }
 
-    // Check if the wallet is on the Monad testnet and attempt a network switch if necessary
     async function checkAndSwitchNetwork() {
       const { chainId } = await provider.getNetwork();
       if (chainId !== parseInt(MONAD_TESTNET_CHAIN_ID, 16)) {
@@ -89,19 +87,24 @@
           await provider.send("wallet_switchEthereumChain", [{ chainId: MONAD_TESTNET_CHAIN_ID }]);
         } catch (switchError) {
           console.error("Error switching network:", switchError);
-          alert("Please switch to the Monad Testnet network in your wallet.");
+          alert("Please switch to the Monad Testnet manually.");
         }
       }
     }
 
-    // Connect wallet using Web3Modal
     async function connectWallet() {
       try {
+        if (!web3Modal) {
+          console.error("Web3Modal is not initialized");
+          return;
+        }
+
         const instance = await web3Modal.connect();
         provider = new ethers.providers.Web3Provider(instance);
         await checkAndSwitchNetwork();
         signer = provider.getSigner();
         const address = await signer.getAddress();
+
         document.getElementById("walletAddress").innerText = address;
         contract = new ethers.Contract(contractAddress, contractABI, signer);
       } catch (err) {
@@ -110,7 +113,6 @@
       }
     }
 
-    // Buy Eggs function
     async function buyEggs() {
       if (!contract) return alert("Please connect your wallet first.");
       const amountStr = document.getElementById("buyEggsValue").value;
@@ -126,7 +128,6 @@
       }
     }
 
-    // Hatch Eggs function
     async function hatchEggs() {
       if (!contract) return alert("Please connect your wallet first.");
       const referral = document.getElementById("hatchReferral").value || ethers.constants.AddressZero;
@@ -140,7 +141,6 @@
       }
     }
 
-    // Sell Eggs function
     async function sellEggs() {
       if (!contract) return alert("Please connect your wallet first.");
       try {
@@ -153,7 +153,6 @@
       }
     }
 
-    // Upgrade Treasury function
     async function upgradeTreasury() {
       if (!contract) return alert("Please connect your wallet first.");
       try {
