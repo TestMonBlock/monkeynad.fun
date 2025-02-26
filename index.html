@@ -25,29 +25,6 @@
   <button id="connectWallet">Connect Wallet</button>
   <p>Connected: <span id="walletAddress">Not connected</span></p>
 
-  <div>
-    <h3>Buy Eggs</h3>
-    <input type="text" id="buyEggsValue" placeholder="Amount in BNB" />
-    <input type="text" id="buyReferral" placeholder="Referral Address (optional)" />
-    <button id="buyEggsButton">Buy Eggs</button>
-  </div>
-
-  <div>
-    <h3>Hatch Eggs</h3>
-    <input type="text" id="hatchReferral" placeholder="Referral Address (optional)" />
-    <button id="hatchEggsButton">Hatch Eggs</button>
-  </div>
-
-  <div>
-    <h3>Sell Eggs</h3>
-    <button id="sellEggsButton">Sell Eggs</button>
-  </div>
-
-  <div>
-    <h3>Upgrade Treasury</h3>
-    <button id="upgradeTreasuryButton">Upgrade Treasury</button>
-  </div>
-
   <script>
     let provider, signer, contract, web3Modal;
 
@@ -55,17 +32,14 @@
     const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with actual Monad Testnet Chain ID
     const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with actual Monad testnet RPC
 
-    const contractABI = [
-      "function hatchEggs(address ref) public",
-      "function sellEggs() public",
-      "function buyEggs(address ref) public payable",
-      "function upgradeTreasury() public",
-      "function getMyEggs(address adr) public view returns(uint256)",
-      "function beanRewards(address adr) public view returns(uint256)"
-    ];
-
-    // Ensure Web3Modal loads before initialization
     document.addEventListener("DOMContentLoaded", function() {
+      console.log("Web3Modal should be available now:", window.Web3Modal); // Debugging
+
+      if (typeof Web3Modal === "undefined") {
+        console.error("Web3Modal is still undefined! The script might not have loaded.");
+        return;
+      }
+
       init();
     });
 
@@ -90,18 +64,6 @@
       console.log("Web3Modal Initialized Successfully!");
     }
 
-    async function checkAndSwitchNetwork() {
-      const { chainId } = await provider.getNetwork();
-      if (chainId !== parseInt(MONAD_TESTNET_CHAIN_ID, 16)) {
-        try {
-          await provider.send("wallet_switchEthereumChain", [{ chainId: MONAD_TESTNET_CHAIN_ID }]);
-        } catch (switchError) {
-          console.error("Error switching network:", switchError);
-          alert("Please switch to the Monad Testnet manually.");
-        }
-      }
-    }
-
     async function connectWallet() {
       try {
         if (!web3Modal) {
@@ -111,76 +73,18 @@
 
         const instance = await web3Modal.connect();
         provider = new ethers.providers.Web3Provider(instance);
-        await checkAndSwitchNetwork();
         signer = provider.getSigner();
         const address = await signer.getAddress();
 
         document.getElementById("walletAddress").innerText = address;
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        console.log("Wallet connected:", address);
       } catch (err) {
         console.error("Wallet connection error:", err);
         alert("Failed to connect wallet.");
       }
     }
 
-    async function buyEggs() {
-      if (!contract) return alert("Please connect your wallet first.");
-      const amountStr = document.getElementById("buyEggsValue").value;
-      const referral = document.getElementById("buyReferral").value || ethers.constants.AddressZero;
-      try {
-        const value = ethers.utils.parseEther(amountStr);
-        const tx = await contract.buyEggs(referral, { value });
-        await tx.wait();
-        alert("Eggs purchased successfully!");
-      } catch (err) {
-        console.error("Buy eggs error:", err);
-        alert("Transaction failed.");
-      }
-    }
-
-    async function hatchEggs() {
-      if (!contract) return alert("Please connect your wallet first.");
-      const referral = document.getElementById("hatchReferral").value || ethers.constants.AddressZero;
-      try {
-        const tx = await contract.hatchEggs(referral);
-        await tx.wait();
-        alert("Eggs hatched successfully!");
-      } catch (err) {
-        console.error("Hatch eggs error:", err);
-        alert("Transaction failed.");
-      }
-    }
-
-    async function sellEggs() {
-      if (!contract) return alert("Please connect your wallet first.");
-      try {
-        const tx = await contract.sellEggs();
-        await tx.wait();
-        alert("Eggs sold successfully!");
-      } catch (err) {
-        console.error("Sell eggs error:", err);
-        alert("Transaction failed.");
-      }
-    }
-
-    async function upgradeTreasury() {
-      if (!contract) return alert("Please connect your wallet first.");
-      try {
-        const tx = await contract.upgradeTreasury();
-        await tx.wait();
-        alert("Treasury upgraded successfully!");
-      } catch (err) {
-        console.error("Upgrade treasury error:", err);
-        alert("Transaction failed.");
-      }
-    }
-
-    window.addEventListener('load', init);
     document.getElementById("connectWallet").addEventListener("click", connectWallet);
-    document.getElementById("buyEggsButton").addEventListener("click", buyEggs);
-    document.getElementById("hatchEggsButton").addEventListener("click", hatchEggs);
-    document.getElementById("sellEggsButton").addEventListener("click", sellEggs);
-    document.getElementById("upgradeTreasuryButton").addEventListener("click", upgradeTreasury);
   </script>
 </body>
 </html>
