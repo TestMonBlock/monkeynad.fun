@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple jar shape -->
+  <path d="M192 144H320C346.51 144 368 165.49 368 192V416C368 442.51 346.51 464 320 464H192C165.49 464 144 442.51 144 416V192C144 165.49 165.49 144 192 144Z" stroke="#00E676" stroke-width="24" fill="none"/>
+  
+  <!-- Simple lid -->
+  <path d="M208 144V112C208 98.7452 218.745 88 232 88H280C293.255 88 304 98.7452 304 112V144" stroke="#00E676" stroke-width="24"/>
+  
+  <!-- Simple X -->
+  <path d="M240 288L272 320M272 288L240 320" stroke="#00E676" stroke-width="24" stroke-linecap="round"/>
+</svg>
