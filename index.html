@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monad Testnet DApp with Web3Onboard & WalletConnect v2</title>
-
-  <!-- Load Ethers.js (if needed for contract interactions) -->
+  <title>Monad Testnet DApp with Web3Onboard</title>
+  
+  <!-- Load Ethers.js (UMD build) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   
-  <!-- Load Web3Onboard core -->
+  <!-- Load Web3Onboard core UMD build -->
   <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/core@1.14.0/dist/web3-onboard.umd.min.js"></script>
-  <!-- Load Web3Onboard Injected Wallets module -->
+  <!-- Load Web3Onboard Injected Wallets UMD build -->
   <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/injected-wallets@1.4.0/dist/injected-wallets.umd.min.js"></script>
-  <!-- Load Web3Onboard WalletConnect module (v2) -->
+  <!-- Load Web3Onboard WalletConnect UMD build (v2) -->
   <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/walletconnect@1.4.0/dist/walletconnect.umd.min.js"></script>
   
   <!-- Prevent Favicon 404 -->
@@ -43,52 +43,77 @@
   </style>
 </head>
 <body>
-  <h1>Monad Testnet DApp with Web3Onboard & WalletConnect v2</h1>
+  <h1>Monad Testnet DApp with Web3Onboard</h1>
   <button id="connectWallet">Connect Wallet</button>
   <p>Connected: <span id="walletAddress">Not connected</span></p>
   
   <script>
-    // Replace these with your actual configuration values
-    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
-    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with the actual chain ID for Monad Testnet (in hex)
+    // --- Configuration ---
+    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE"; // Replace with your contract address, if needed.
+    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with your Monad Testnet chain ID (in hex)
     const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with your Monad Testnet RPC URL
-    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Obtain from WalletConnect dashboard
+    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Required for WalletConnect v2
 
-    // Define chain configuration for Monad Testnet
-    const chainConfig = {
-      id: MONAD_TESTNET_CHAIN_ID,
-      token: "tMON",  // Adjust token symbol if needed
-      label: "Monad Testnet",
-      rpcUrl: MONAD_TESTNET_RPC_URL
-    };
+    // --- Debug Logging: Check that the libraries are loaded ---
+    console.log("Ethers:", typeof ethers);
+    console.log("Web3Onboard core:", window.Web3Onboard);
+    console.log("Injected Wallets Module:", window.web3OnboardInjectedWallets);
+    console.log("WalletConnect Module:", window.web3OnboardWalletConnect);
 
-    // Initialize the injected wallets module (e.g., MetaMask)
-    const injected = window.web3OnboardInjectedWallets.default();
+    // --- Initialize the Injected Wallets Module ---
+    // This should expose a global function under window.web3OnboardInjectedWallets
+    const injected = window.web3OnboardInjectedWallets && window.web3OnboardInjectedWallets.default
+                     ? window.web3OnboardInjectedWallets.default()
+                     : null;
+    if (!injected) {
+      console.error("Injected wallets module failed to load.");
+    }
 
-    // Initialize the WalletConnect module for v2; a projectId is required
-    const walletConnect = window.web3OnboardWalletConnect.default({
-      projectId: WALLETCONNECT_PROJECT_ID,
-      metadata: {
-        name: "Your DApp Name",
-        description: "Your DApp Description",
-        url: "https://yourdapp.com",
-        icons: ["https://yourdapp.com/icon.png"]  // Replace with your icon URL
-      }
-    });
+    // --- Initialize the WalletConnect Module for v2 ---
+    const walletConnect = window.web3OnboardWalletConnect && window.web3OnboardWalletConnect.default
+                          ? window.web3OnboardWalletConnect.default({
+                              projectId: WALLETCONNECT_PROJECT_ID,
+                              metadata: {
+                                name: "Monad Testnet DApp",
+                                description: "A decentralized application on Monad Testnet",
+                                url: "https://yourdapp.com", // Replace with your DApp URL
+                                icons: ["https://yourdapp.com/icon.png"] // Replace with your DApp icon URL
+                              }
+                            })
+                          : null;
+    if (!walletConnect) {
+      console.error("WalletConnect module failed to load.");
+    }
 
-    // Initialize Web3Onboard with the two wallet modules
-    const onboard = window.Web3Onboard.default({
-      wallets: [injected, walletConnect],
-      chains: [chainConfig],
-      appMetadata: {
-        name: "Monad Testnet DApp",
-        icon: "<svg></svg>", // Optionally include an SVG icon
-        description: "A decentralized application on Monad Testnet"
-      }
-    });
+    // --- Initialize Web3Onboard ---
+    const onboard = window.Web3Onboard && window.Web3Onboard.default
+                    ? window.Web3Onboard.default({
+                        wallets: [injected, walletConnect].filter(Boolean),
+                        chains: [{
+                          id: MONAD_TESTNET_CHAIN_ID,
+                          token: "tMON", // Replace with the token symbol if needed
+                          label: "Monad Testnet",
+                          rpcUrl: MONAD_TESTNET_RPC_URL
+                        }],
+                        appMetadata: {
+                          name: "Monad Testnet DApp",
+                          icon: "<svg></svg>", // Optionally add an SVG icon
+                          description: "A decentralized application on Monad Testnet"
+                        }
+                      })
+                    : null;
+    if (!onboard) {
+      console.error("Web3Onboard failed to initialize.");
+    } else {
+      console.log("✅ Web3Onboard Initialized Successfully!");
+    }
 
-    // Connect wallet when the user clicks the button
+    // --- Connect Wallet Button Handler ---
     document.getElementById("connectWallet").addEventListener("click", async () => {
+      if (!onboard) {
+        console.error("⚠ Web3Onboard is not initialized.");
+        return;
+      }
       try {
         const wallets = await onboard.connectWallet();
         if (wallets && wallets.length > 0) {
