@@ -1,4 +1,4 @@
-let provider, signer, contract, web3Modal;
+let provider, signer, contract, web3ModalInstance;
 
 const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
 const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with actual Monad Testnet Chain ID
@@ -6,8 +6,8 @@ const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with 
 
 async function loadWeb3Modal() {
   try {
-    const Web3ModalModule = await import("https://unpkg.com/web3modal@1.9.4");
-    return Web3ModalModule.default; // Access default export
+    const Web3ModalModule = await import("https://unpkg.com/web3modal@1.9.4/dist/index.js");
+    return Web3ModalModule.default || Web3ModalModule; // Access default export correctly
   } catch (error) {
     console.error("🚨 Web3Modal failed to load!", error);
     alert("Web3Modal could not be loaded. Try refreshing the page.");
@@ -36,52 +36,35 @@ async function checkScriptsLoaded() {
 
 document.addEventListener("DOMContentLoaded", async function () {
   console.log("🔄 Attempting to Load Web3Modal...");
-  web3Modal = await loadWeb3Modal();
-  if (!web3Modal) return;
+  const Web3Modal = await loadWeb3Modal();
+  if (!Web3Modal) return;
 
-  setTimeout(async () => {
-    if (!await checkScriptsLoaded()) return;
-    init();
-  }, 1000); // Wait 1 second to ensure all scripts are loaded
-});
-
-async function init() {
-  console.log("Initializing Web3Modal...");
-
-  if (!web3Modal) {
-    console.error("🚨 Web3Modal is not available. Retrying in 2 seconds...");
-    setTimeout(init, 2000); // Retry after 2 seconds
-    return;
-  }
-
-  const providerOptions = {
-    walletconnect: {
-      package: WalletConnectProvider,
-      options: {
-        rpc: {
-          [parseInt(MONAD_TESTNET_CHAIN_ID, 16)]: MONAD_TESTNET_RPC_URL
+  web3ModalInstance = new Web3Modal({
+    cacheProvider: false,
+    providerOptions: {
+      walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+          rpc: {
+            [parseInt(MONAD_TESTNET_CHAIN_ID, 16)]: MONAD_TESTNET_RPC_URL
+          }
         }
       }
     }
-  };
-
-  web3Modal = new web3Modal({
-    cacheProvider: false,
-    providerOptions
   });
 
   console.log("✅ Web3Modal Initialized Successfully!");
-}
+});
 
 async function connectWallet() {
   try {
-    if (!web3Modal) {
+    if (!web3ModalInstance) {
       console.error("⚠ Web3Modal is not initialized");
       return;
     }
 
     console.log("🔗 Connecting Wallet...");
-    const instance = await web3Modal.connect();
+    const instance = await web3ModalInstance.connect();
     provider = new ethers.providers.Web3Provider(instance);
     signer = provider.getSigner();
     const address = await signer.getAddress();
