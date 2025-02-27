@@ -6,8 +6,10 @@ const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with 
 
 async function loadWeb3Modal() {
   try {
-    const Web3ModalModule = await import("https://unpkg.com/web3modal@1.9.4/dist/index.js");
-    return Web3ModalModule.default || Web3ModalModule; // Access default export correctly
+    const Web3ModalModule = await import("https://cdn.jsdelivr.net/npm/web3modal@1.9.4/dist/index.umd.min.js");
+    
+    // ✅ Web3Modal needs to be accessed via .default
+    return Web3ModalModule.default || Web3ModalModule;
   } catch (error) {
     console.error("🚨 Web3Modal failed to load!", error);
     alert("Web3Modal could not be loaded. Try refreshing the page.");
@@ -36,21 +38,24 @@ async function checkScriptsLoaded() {
 
 document.addEventListener("DOMContentLoaded", async function () {
   console.log("🔄 Attempting to Load Web3Modal...");
+  
   const Web3Modal = await loadWeb3Modal();
   if (!Web3Modal) return;
 
-  web3ModalInstance = new Web3Modal({
-    cacheProvider: false,
-    providerOptions: {
-      walletconnect: {
-        package: WalletConnectProvider,
-        options: {
-          rpc: {
-            [parseInt(MONAD_TESTNET_CHAIN_ID, 16)]: MONAD_TESTNET_RPC_URL
-          }
+  const providerOptions = {
+    walletconnect: {
+      package: WalletConnectProvider,
+      options: {
+        rpc: {
+          [parseInt(MONAD_TESTNET_CHAIN_ID, 16)]: MONAD_TESTNET_RPC_URL
         }
       }
     }
+  };
+
+  web3ModalInstance = new Web3Modal({
+    cacheProvider: false,
+    providerOptions
   });
 
   console.log("✅ Web3Modal Initialized Successfully!");
