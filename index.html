@@ -3,9 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monad Testnet DApp</title>
+  <title>Monad Testnet DApp with Web3Onboard & WalletConnect v2</title>
+
+  <!-- Load Ethers.js (if needed for contract interactions) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  
+  <!-- Load Web3Onboard core -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/core@1.14.0/dist/web3-onboard.umd.min.js"></script>
+  <!-- Load Web3Onboard Injected Wallets module -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/injected-wallets@1.4.0/dist/injected-wallets.umd.min.js"></script>
+  <!-- Load Web3Onboard WalletConnect module (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/walletconnect@1.4.0/dist/walletconnect.umd.min.js"></script>
+  
   <!-- Prevent Favicon 404 -->
   <link rel="icon" href="data:,">
+  
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,17 +29,12 @@
       margin: 5px;
       padding: 10px 20px;
       background: #ff9800;
-      color: white;
       border: none;
       cursor: pointer;
+      color: white;
     }
     button:hover {
       background: #e68900;
-    }
-    input {
-      margin: 5px;
-      padding: 8px;
-      width: 200px;
     }
     #walletAddress {
       font-weight: bold;
@@ -36,11 +43,66 @@
   </style>
 </head>
 <body>
-  <h1>Monad Testnet DApp</h1>
+  <h1>Monad Testnet DApp with Web3Onboard & WalletConnect v2</h1>
   <button id="connectWallet">Connect Wallet</button>
   <p>Connected: <span id="walletAddress">Not connected</span></p>
   
-  <!-- Load the main script as a module -->
-  <script type="module" src="scripts.js"></script>
+  <script>
+    // Replace these with your actual configuration values
+    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
+    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with the actual chain ID for Monad Testnet (in hex)
+    const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with your Monad Testnet RPC URL
+    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Obtain from WalletConnect dashboard
+
+    // Define chain configuration for Monad Testnet
+    const chainConfig = {
+      id: MONAD_TESTNET_CHAIN_ID,
+      token: "tMON",  // Adjust token symbol if needed
+      label: "Monad Testnet",
+      rpcUrl: MONAD_TESTNET_RPC_URL
+    };
+
+    // Initialize the injected wallets module (e.g., MetaMask)
+    const injected = window.web3OnboardInjectedWallets.default();
+
+    // Initialize the WalletConnect module for v2; a projectId is required
+    const walletConnect = window.web3OnboardWalletConnect.default({
+      projectId: WALLETCONNECT_PROJECT_ID,
+      metadata: {
+        name: "Your DApp Name",
+        description: "Your DApp Description",
+        url: "https://yourdapp.com",
+        icons: ["https://yourdapp.com/icon.png"]  // Replace with your icon URL
+      }
+    });
+
+    // Initialize Web3Onboard with the two wallet modules
+    const onboard = window.Web3Onboard.default({
+      wallets: [injected, walletConnect],
+      chains: [chainConfig],
+      appMetadata: {
+        name: "Monad Testnet DApp",
+        icon: "<svg></svg>", // Optionally include an SVG icon
+        description: "A decentralized application on Monad Testnet"
+      }
+    });
+
+    // Connect wallet when the user clicks the button
+    document.getElementById("connectWallet").addEventListener("click", async () => {
+      try {
+        const wallets = await onboard.connectWallet();
+        if (wallets && wallets.length > 0) {
+          const account = wallets[0].accounts[0].address;
+          document.getElementById("walletAddress").innerText = account;
+          console.log("✅ Wallet connected:", account);
+        } else {
+          console.log("No wallet connected.");
+        }
+      } catch (error) {
+        console.error("🚨 Wallet connection error:", error);
+        alert("Failed to connect wallet.");
+      }
+    });
+  </script>
 </body>
 </html>
