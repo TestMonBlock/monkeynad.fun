@@ -12,19 +12,19 @@ function checkScriptsLoaded() {
     alert("Ethers.js did not load. Refresh the page or check your internet connection.");
     return false;
   }
-
+  
   if (typeof Web3Modal === "undefined") {
     console.error("🚨 Web3Modal failed to load!");
     alert("Web3Modal did not load. Refresh the page.");
     return false;
   }
-
+  
   if (typeof WalletConnectProvider === "undefined") {
     console.error("🚨 WalletConnectProvider failed to load!");
     alert("WalletConnect did not load. Refresh the page.");
     return false;
   }
-
+  
   console.log("✅ All scripts loaded successfully!");
   return true;
 }
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function init() {
   console.log("Initializing Web3Modal...");
-
+  
   const providerOptions = {
     walletconnect: {
       package: WalletConnectProvider,
@@ -47,13 +47,13 @@ function init() {
       }
     }
   };
-
-  // Initialize Web3Modal using the global Web3Modal from the unpkg script.
+  
+  // Use the global Web3Modal from the UMD build
   web3Modal = new Web3Modal({
     cacheProvider: false,
     providerOptions: providerOptions
   });
-
+  
   console.log("✅ Web3Modal Initialized Successfully!");
 }
 
@@ -63,13 +63,13 @@ async function connectWallet() {
       console.error("⚠ Web3Modal is not initialized");
       return;
     }
-
+    
     console.log("🔗 Connecting Wallet...");
     const instance = await web3Modal.connect();
     provider = new ethers.providers.Web3Provider(instance);
     signer = provider.getSigner();
     const address = await signer.getAddress();
-
+    
     document.getElementById("walletAddress").innerText = address;
     console.log("✅ Wallet connected:", address);
   } catch (err) {
