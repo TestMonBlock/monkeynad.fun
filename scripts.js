@@ -4,7 +4,23 @@ const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
 const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with actual Monad Testnet Chain ID
 const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with actual Monad testnet RPC
 
-function checkScriptsLoaded() {
+async function loadWeb3Modal() {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/web3modal@1.9.4/dist/index.js";
+    script.onload = () => {
+      console.log("✅ Web3Modal Loaded Successfully!");
+      resolve();
+    };
+    script.onerror = () => {
+      console.error("🚨 Web3Modal failed to load!");
+      reject(new Error("Web3Modal failed to load."));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+async function checkScriptsLoaded() {
   console.log("Checking if all scripts are loaded...");
 
   if (typeof ethers === "undefined") {
@@ -14,8 +30,8 @@ function checkScriptsLoaded() {
   }
 
   if (typeof Web3Modal === "undefined") {
-    console.error("🚨 Web3Modal failed to load!");
-    alert("Web3Modal did not load. Refresh the page.");
+    console.error("🚨 Web3Modal failed to load! Retrying in 2 seconds...");
+    await loadWeb3Modal();
     return false;
   }
 
@@ -29,15 +45,24 @@ function checkScriptsLoaded() {
   return true;
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  setTimeout(() => {
-    if (!checkScriptsLoaded()) return;
+document.addEventListener("DOMContentLoaded", async function () {
+  console.log("🔄 Attempting to Load Web3Modal...");
+  await loadWeb3Modal();
+  setTimeout(async () => {
+    if (!await checkScriptsLoaded()) return;
     init();
   }, 1000); // Wait 1 second to ensure all scripts are loaded
 });
 
-function init() {
+async function init() {
   console.log("Initializing Web3Modal...");
+
+  if (typeof Web3Modal === "undefined") {
+    console.error("🚨 Web3Modal is still not defined. Retrying in 2 seconds...");
+    setTimeout(init, 2000); // Retry after 2 seconds
+    return;
+  }
+
   const providerOptions = {
     walletconnect: {
       package: WalletConnectProvider,

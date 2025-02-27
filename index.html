@@ -8,8 +8,8 @@
   <!-- Load Ethers.js First (Fixed Version) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 
-  <!-- Load Web3Modal (Stable Version) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.4/web3modal.min.js"></script>
+  <!-- Load Web3Modal (Fixed Version from unpkg) -->
+  <script src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
 
   <!-- Load WalletConnect -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
@@ -78,8 +78,15 @@
       }, 1000); // Add a 1-second delay to ensure proper loading
     });
 
-    function init() {
+    async function init() {
       console.log("Initializing Web3Modal...");
+
+      if (typeof Web3Modal === "undefined") {
+        console.error("🚨 Web3Modal is still not defined. Retrying in 2 seconds...");
+        setTimeout(init, 2000); // Retry after 2 seconds
+        return;
+      }
+
       const providerOptions = {
         walletconnect: {
           package: WalletConnectProvider,
