@@ -1,28 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monad Testnet DApp</title>
-  
-  <!-- Load Ethers.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-  
-  <!-- Load Web3Modal UMD build from unpkg -->
-  <script src="https://unpkg.com/web3modal@1.9.4/dist/index.umd.min.js"></script>
-  
-  <!-- Load WalletConnectProvider -->
-  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-  
   <!-- Prevent Favicon 404 -->
   <link rel="icon" href="data:,">
-  
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #121212; color: white; }
-    button { margin: 5px; padding: 10px 20px; background: #ff9800; color: white; border: none; cursor: pointer; }
-    button:hover { background: #e68900; }
-    input { margin: 5px; padding: 8px; width: 200px; }
-    #walletAddress { font-weight: bold; color: #ff9800; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #121212;
+      color: white;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      background: #ff9800;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e68900;
+    }
+    input {
+      margin: 5px;
+      padding: 8px;
+      width: 200px;
+    }
+    #walletAddress {
+      font-weight: bold;
+      color: #ff9800;
+    }
   </style>
 </head>
 <body>
@@ -30,7 +40,7 @@
   <button id="connectWallet">Connect Wallet</button>
   <p>Connected: <span id="walletAddress">Not connected</span></p>
   
-  <!-- Load our main JavaScript -->
-  <script src="scripts.js"></script>
+  <!-- Load the main script as a module -->
+  <script type="module" src="scripts.js"></script>
 </body>
 </html>
