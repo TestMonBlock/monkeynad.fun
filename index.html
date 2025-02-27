@@ -8,12 +8,12 @@
   <!-- Load Ethers.js (UMD build) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   
-  <!-- Load Web3Onboard core UMD build from jsDelivr (without version numbers) -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/core/dist/web3-onboard.umd.min.js"></script>
-  <!-- Load Web3Onboard Injected Wallets UMD build -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/injected-wallets/dist/injected-wallets.umd.min.js"></script>
-  <!-- Load Web3Onboard WalletConnect UMD build (v2) -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/walletconnect/dist/walletconnect.umd.min.js"></script>
+  <!-- Load Web3Onboard core UMD build from unpkg -->
+  <script src="https://unpkg.com/@web3-onboard/core@1.14.0/dist/web3-onboard.umd.min.js"></script>
+  <!-- Load Web3Onboard Injected Wallets UMD build from unpkg -->
+  <script src="https://unpkg.com/@web3-onboard/injected-wallets@1.4.0/dist/injected-wallets.umd.min.js"></script>
+  <!-- Load Web3Onboard WalletConnect UMD build (v2) from unpkg -->
+  <script src="https://unpkg.com/@web3-onboard/walletconnect@1.4.0/dist/walletconnect.umd.min.js"></script>
   
   <!-- Prevent Favicon 404 -->
   <link rel="icon" href="data:,">
@@ -48,27 +48,26 @@
   <p>Connected: <span id="walletAddress">Not connected</span></p>
   
   <script>
-    // --- Configuration (Update these placeholders with your actual values) ---
+    // --- Configuration (Replace placeholders with actual values) ---
     const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
-    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Monad Testnet chain ID (in hex)
+    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Monad Testnet chain ID in hex
     const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/";
-    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Required for WalletConnect v2
-
-    // --- Debug Logging: Check Library Availability ---
+    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID";
+    
+    // --- Debug Logging: Verify Libraries Loaded ---
     console.log("Ethers:", typeof ethers);
     console.log("Web3Onboard core:", typeof window.Web3Onboard);
     console.log("Injected Wallets Module:", typeof window.web3OnboardInjectedWallets);
     console.log("WalletConnect Module:", typeof window.web3OnboardWalletConnect);
-
-    // --- Initialize Injected Wallets Module ---
+    
+    // --- Initialize Wallet Modules ---
     const injected = window.web3OnboardInjectedWallets && window.web3OnboardInjectedWallets.default 
                      ? window.web3OnboardInjectedWallets.default() 
                      : null;
     if (!injected) {
       console.error("Injected wallets module failed to load.");
     }
-
-    // --- Initialize WalletConnect Module (v2) ---
+    
     const walletConnect = window.web3OnboardWalletConnect && window.web3OnboardWalletConnect.default
                           ? window.web3OnboardWalletConnect.default({
                               projectId: WALLETCONNECT_PROJECT_ID,
@@ -83,7 +82,7 @@
     if (!walletConnect) {
       console.error("WalletConnect module failed to load.");
     }
-
+    
     // --- Define Chain Configuration ---
     const chainConfig = {
       id: MONAD_TESTNET_CHAIN_ID,
@@ -91,7 +90,7 @@
       label: "Monad Testnet",
       rpcUrl: MONAD_TESTNET_RPC_URL
     };
-
+    
     // --- Initialize Web3Onboard ---
     const onboard = window.Web3Onboard && window.Web3Onboard.default
                     ? window.Web3Onboard.default({
@@ -109,7 +108,7 @@
     } else {
       console.log("✅ Web3Onboard Initialized Successfully!");
     }
-
+    
     // --- Wallet Connection Handler ---
     document.getElementById("connectWallet").addEventListener("click", async () => {
       if (!onboard) {
