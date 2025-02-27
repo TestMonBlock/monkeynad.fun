@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monad Testnet DApp</title>
-
-  <!-- Load Ethers.js First (Fixed Version) -->
+  
+  <!-- Load Ethers.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-
-  <!-- Load Web3Modal (Fixed Version from unpkg) -->
+  
+  <!-- Load Web3Modal from unpkg -->
   <script src="https://unpkg.com/web3modal@1.9.4/dist/index.js"></script>
-
-  <!-- Load WalletConnect -->
+  
+  <!-- Load WalletConnectProvider -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-
-  <!-- Prevent Favicon 404 Error -->
+  
+  <!-- Prevent Favicon 404 -->
   <link rel="icon" href="data:,">
-
+  
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background-color: #121212; color: white; }
     button { margin: 5px; padding: 10px 20px; background: #ff9800; color: white; border: none; cursor: pointer; }
@@ -29,105 +29,8 @@
   <h1>Monad Testnet DApp</h1>
   <button id="connectWallet">Connect Wallet</button>
   <p>Connected: <span id="walletAddress">Not connected</span></p>
-
-  <script>
-    let provider, signer, contract, web3Modal;
-
-    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
-    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Replace with actual Monad Testnet Chain ID
-    const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Replace with actual Monad testnet RPC
-
-    // Debugging: Check if Web3Modal is loaded
-    console.log("🔍 Checking Web3Modal:", window.Web3Modal);
-    if (typeof Web3Modal === "undefined") {
-      console.error("🚨 Web3Modal is still undefined!");
-    } else {
-      console.log("✅ Web3Modal Loaded Successfully!");
-    }
-
-    function checkScriptsLoaded() {
-      console.log("Checking if all scripts are loaded...");
-
-      if (typeof ethers === "undefined") {
-        console.error("🚨 Ethers.js failed to load!");
-        alert("Ethers.js did not load. Refresh the page or check your internet connection.");
-        return false;
-      }
-
-      if (typeof Web3Modal === "undefined") {
-        console.error("🚨 Web3Modal failed to load!");
-        alert("Web3Modal did not load. Refresh the page.");
-        return false;
-      }
-
-      if (typeof WalletConnectProvider === "undefined") {
-        console.error("🚨 WalletConnectProvider failed to load!");
-        alert("WalletConnect did not load. Refresh the page.");
-        return false;
-      }
-
-      console.log("✅ All scripts loaded successfully!");
-      return true;
-    }
-
-    // Ensure Web3Modal is loaded before initializing
-    document.addEventListener("DOMContentLoaded", function () {
-      setTimeout(() => {
-        if (!checkScriptsLoaded()) return;
-        init();
-      }, 1000); // Add a 1-second delay to ensure proper loading
-    });
-
-    async function init() {
-      console.log("Initializing Web3Modal...");
-
-      if (typeof Web3Modal === "undefined") {
-        console.error("🚨 Web3Modal is still not defined. Retrying in 2 seconds...");
-        setTimeout(init, 2000); // Retry after 2 seconds
-        return;
-      }
-
-      const providerOptions = {
-        walletconnect: {
-          package: WalletConnectProvider,
-          options: {
-            rpc: {
-              [parseInt(MONAD_TESTNET_CHAIN_ID, 16)]: MONAD_TESTNET_RPC_URL
-            }
-          }
-        }
-      };
-
-      web3Modal = new Web3Modal({
-        cacheProvider: false,
-        providerOptions
-      });
-
-      console.log("✅ Web3Modal Initialized Successfully!");
-    }
-
-    async function connectWallet() {
-      try {
-        if (!web3Modal) {
-          console.error("⚠ Web3Modal is not initialized");
-          return;
-        }
-
-        console.log("🔗 Connecting Wallet...");
-        const instance = await web3Modal.connect();
-        provider = new ethers.providers.Web3Provider(instance);
-        signer = provider.getSigner();
-        const address = await signer.getAddress();
-
-        document.getElementById("walletAddress").innerText = address;
-        console.log("✅ Wallet connected:", address);
-      } catch (err) {
-        console.error("🚨 Wallet connection error:", err);
-        alert("Failed to connect wallet.");
-      }
-    }
-
-    document.getElementById("connectWallet").addEventListener("click", connectWallet);
-  </script>
+  
+  <!-- Load our main JavaScript -->
+  <script src="scripts.js"></script>
 </body>
 </html>
