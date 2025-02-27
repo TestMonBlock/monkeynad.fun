@@ -1,18 +1,10 @@
-function loadWeb3Modal(callback) {
-  const script = document.createElement("script");
-  script.src = "https://cdnjs.cloudflare.com/ajax/libs/web3modal/1.9.4/web3modal.min.js";
-  script.onload = callback;
-  script.onerror = function () {
-    console.error("🚨 Web3Modal failed to load!");
-    alert("Web3Modal did not load. Refresh the page.");
-  };
-  document.body.appendChild(script);
+async function loadWeb3Modal() {
+  try {
+    const Web3Modal = await import("https://esm.sh/web3modal@1.9.4");
+    console.log("✅ Web3Modal loaded successfully:", Web3Modal);
+    return Web3Modal;
+  } catch (error) {
+    console.error("🚨 Failed to load Web3Modal:", error);
+    alert("Web3Modal could not be loaded. Try refreshing the page.");
+  }
 }
-
-// Load Web3Modal before running the DApp
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("🔄 Loading Web3Modal dynamically...");
-  loadWeb3Modal(() => {
-    console.log("✅ Web3Modal Loaded Successfully!");
-  });
-});
