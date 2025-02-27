@@ -8,12 +8,12 @@
   <!-- Load Ethers.js (UMD build) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   
-  <!-- Load Web3Onboard core UMD build from jsDelivr -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/core@1.14.0/dist/web3-onboard.umd.min.js"></script>
-  <!-- Load Web3Onboard Injected Wallets UMD build from jsDelivr -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/injected-wallets@1.4.0/dist/injected-wallets.umd.min.js"></script>
-  <!-- Load Web3Onboard WalletConnect UMD build (v2) from jsDelivr -->
-  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/walletconnect@1.4.0/dist/walletconnect.umd.min.js"></script>
+  <!-- Load Web3Onboard core UMD build from jsDelivr (without version numbers) -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/core/dist/web3-onboard.umd.min.js"></script>
+  <!-- Load Web3Onboard Injected Wallets UMD build -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/injected-wallets/dist/injected-wallets.umd.min.js"></script>
+  <!-- Load Web3Onboard WalletConnect UMD build (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@web3-onboard/walletconnect/dist/walletconnect.umd.min.js"></script>
   
   <!-- Prevent Favicon 404 -->
   <link rel="icon" href="data:,">
@@ -48,34 +48,34 @@
   <p>Connected: <span id="walletAddress">Not connected</span></p>
   
   <script>
-    // --- Configuration ---
-    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE"; // Replace with your contract address if needed
+    // --- Configuration (Update these placeholders with your actual values) ---
+    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
     const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Monad Testnet chain ID (in hex)
-    const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Monad Testnet RPC URL
-    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Obtain from WalletConnect dashboard
+    const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/";
+    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Required for WalletConnect v2
 
-    // --- Debug Logging: Verify Libraries ---
+    // --- Debug Logging: Check Library Availability ---
     console.log("Ethers:", typeof ethers);
     console.log("Web3Onboard core:", typeof window.Web3Onboard);
     console.log("Injected Wallets Module:", typeof window.web3OnboardInjectedWallets);
     console.log("WalletConnect Module:", typeof window.web3OnboardWalletConnect);
 
-    // --- Initialize the Injected Wallets Module ---
-    const injected = window.web3OnboardInjectedWallets && window.web3OnboardInjectedWallets.default
-                     ? window.web3OnboardInjectedWallets.default()
+    // --- Initialize Injected Wallets Module ---
+    const injected = window.web3OnboardInjectedWallets && window.web3OnboardInjectedWallets.default 
+                     ? window.web3OnboardInjectedWallets.default() 
                      : null;
     if (!injected) {
       console.error("Injected wallets module failed to load.");
     }
 
-    // --- Initialize the WalletConnect Module for v2 ---
+    // --- Initialize WalletConnect Module (v2) ---
     const walletConnect = window.web3OnboardWalletConnect && window.web3OnboardWalletConnect.default
                           ? window.web3OnboardWalletConnect.default({
                               projectId: WALLETCONNECT_PROJECT_ID,
                               metadata: {
                                 name: "Monad Testnet DApp",
                                 description: "A decentralized application on Monad Testnet",
-                                url: "https://yourdapp.com", // Replace with your DApp URL if available
+                                url: "https://yourdapp.com",    // Replace with your DApp URL if available
                                 icons: ["https://yourdapp.com/icon.png"] // Replace with your DApp icon URL if available
                               }
                             })
@@ -110,7 +110,7 @@
       console.log("✅ Web3Onboard Initialized Successfully!");
     }
 
-    // --- Connect Wallet Button Handler ---
+    // --- Wallet Connection Handler ---
     document.getElementById("connectWallet").addEventListener("click", async () => {
       if (!onboard) {
         console.error("⚠ Web3Onboard is not initialized.");
