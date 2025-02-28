@@ -21,15 +21,26 @@ async function connectWallet() {
             return;
         }
 
-        // Get the Chain ID that Phantom or MetaMask is returning
+        // Get the current Chain ID that Phantom or MetaMask is returning
         const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
-        console.log("Phantom is returning Chain ID:", currentChainId);
+        console.log("Wallet is returning Chain ID:", currentChainId);
 
-        // Check if Phantom is on the correct network
+        // If the wallet is not on Monad Testnet, try to switch
         if (currentChainId !== monadChainId) {
-            alert(`Phantom is on the wrong network! Expected: ${monadChainId}, but got: ${currentChainId}.
-            Please manually select Monad Testnet in Phantom and try again.`);
-            return;
+            try {
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: monadChainId }]
+                });
+            } catch (switchError) {
+                console.error("Network switch failed:", switchError);
+
+                // If Monad Testnet is not recognized, alert the user
+                if (switchError.code === 4902) {
+                    alert("Phantom Wallet does not recognize Monad Testnet. Please contact Phantom support.");
+                    return;
+                }
+            }
         }
 
         // Request account access
@@ -45,7 +56,7 @@ async function connectWallet() {
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
-        alert("Wallet connection failed. Check console for details.");
+        alert("Wallet connection failed. Try switching networks in another wallet.");
     }
 }
 
