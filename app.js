@@ -13,7 +13,7 @@ let provider;
 let signer;
 let contract;
 
-// Connect Wallet (Phantom & MetaMask Support)
+// Connect Wallet (Bypassing Phantom’s `window.ethereum`)
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,55 +21,26 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Get the current Chain ID
-        let currentChainId = await window.ethereum.request({ method: "eth_chainId" });
-        console.log("Wallet is returning Chain ID:", currentChainId);
+        // Step 1: Force Connect to Monad Testnet RPC Directly
+        provider = new ethers.JsonRpcProvider(monadRPC); // Direct connection to Monad Testnet
+        signer = await provider.getSigner();
 
-        // Step 2: If Phantom is stuck on Ethereum Mainnet (`0x1`), force it to use Monad Testnet RPC
-        if (currentChainId === "0x1") {
-            alert("Phantom Wallet is stuck on Ethereum Mainnet. Trying to force Monad Testnet...");
+        // Step 2: Request Wallet Connection
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
-            try {
-                // Force Phantom to use Monad Testnet by sending a request to the RPC
-                const response = await fetch("https://testnet-rpc.monad.xyz", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_chainId", params: [] }),
-                });
+        // Step 3: Verify Network (Force Check with RPC)
+        const chainId = await provider.send("eth_chainId", []);
+        console.log("Monad RPC is returning Chain ID:", chainId);
 
-                const rpcResult = await response.json();
-                console.log("Monad RPC responded with Chain ID:", rpcResult);
-
-                // Re-fetch the chain ID from Phantom after forcing the RPC request
-                currentChainId = await window.ethereum.request({ method: "eth_chainId" });
-                console.log("After RPC request, Chain ID is:", currentChainId);
-            } catch (rpcError) {
-                console.error("Failed to connect to Monad RPC:", rpcError);
-                alert("Failed to connect to Monad Testnet RPC. Try restarting Phantom.");
-                return;
-            }
-
-            if (currentChainId === "0x1") {
-                alert("Phantom is still stuck on Ethereum Mainnet. Try restarting Phantom Wallet.");
-                return;
-            }
-        }
-
-        // Step 3: If the network is still incorrect, stop the connection
-        if (currentChainId !== monadChainId) {
-            alert(`Unexpected network detected: ${currentChainId}. Make sure you are on Monad Testnet.`);
+        if (chainId !== monadChainId) {
+            alert(`Unexpected network detected: ${chainId}. Make sure you are on Monad Testnet.`);
             return;
         }
 
-        // Step 4: Request access to accounts
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-
-        // Step 5: Initialize Provider, Signer & Contract
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner();
+        // Step 4: Connect to Contract
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 6: Update UI with connected wallet address
+        // Step 5: Update UI with connected wallet address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData();
