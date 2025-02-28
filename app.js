@@ -13,7 +13,7 @@ let provider;
 let signer;
 let contract;
 
-// Connect Wallet (Fixed for Phantom & MetaMask)
+// Connect Wallet (Forces Re-login on Page Reload)
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,7 +21,10 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Request Wallet Connection
+        // Step 1: Clear Cached Accounts to Prevent Auto-Login
+        sessionStorage.removeItem("phantomConnected");
+
+        // Step 2: Request Wallet Connection (Forces Password Entry)
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -29,26 +32,27 @@ async function connectWallet() {
             return;
         }
 
-        // Step 2: Use Phantom's Provider (`window.ethereum`) for Transactions
-        provider = new ethers.BrowserProvider(window.ethereum); // Use Phantom’s provider
-        signer = await provider.getSigner(); // Fix: Ensure Phantom's signer is used
+        // Step 3: Use Phantom's Provider (`window.ethereum`) for Transactions
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
 
-        // Step 3: **Use Monad RPC for Network Check**
-        const dataProvider = new ethers.JsonRpcProvider(monadRPC); // Used for reading blockchain data
-        const chainId = await dataProvider.send("eth_chainId", []); // Fetch correct chain ID
-
+        // Step 4: Use Monad RPC for Network Check
+        const dataProvider = new ethers.JsonRpcProvider(monadRPC);
+        const chainId = await dataProvider.send("eth_chainId", []);
         console.log("Monad RPC is returning Chain ID:", chainId);
 
-        // 🔥 **Fix: Ensure we correctly accept `0x279F`**
         if (chainId.toLowerCase() !== monadChainId.toLowerCase()) {
             alert(`Unexpected network detected: ${chainId}. Make sure you are on Monad Testnet.`);
             return;
         }
 
-        // Step 4: Connect to Contract
+        // Step 5: Store Connection Status (Prevents Auto-Login on Page Reload)
+        sessionStorage.setItem("phantomConnected", "true");
+
+        // Step 6: Connect to Contract
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 5: Update UI with Connected Wallet Address
+        // Step 7: Update UI with Connected Wallet Address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData(dataProvider);
@@ -62,9 +66,9 @@ async function connectWallet() {
 async function getUserData(dataProvider) {
     try {
         const user = await signer.getAddress();
-        const balance = await dataProvider.getBalance(user); // Use dataProvider for reading blockchain
-        const miners = await contract.getMyMiners?.(user); // Ensure function exists before calling
-        const eggs = await contract.getMyEggs?.(user); // Ensure function exists before calling
+        const balance = await dataProvider.getBalance(user);
+        const miners = await contract.getMyMiners?.(user);
+        const eggs = await contract.getMyEggs?.(user);
 
         document.getElementById("balance").innerText = ethers.formatEther(balance);
         document.getElementById("miners").innerText = miners || 0;
@@ -73,6 +77,11 @@ async function getUserData(dataProvider) {
         console.error("Error fetching user data:", error);
     }
 }
+
+// Force Logout on Page Exit (User Must Reconnect on Return)
+window.onbeforeunload = function () {
+    sessionStorage.removeItem("phantomConnected");
+};
 
 // Buy eggs (Deposit MON)
 async function buyEggs() {
