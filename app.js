@@ -21,37 +21,48 @@ async function connectWallet() {
             return;
         }
 
-        // Request account access
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-
-        // Get the current Chain ID
-        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+        // Step 1: Get the current Chain ID
+        let currentChainId = await window.ethereum.request({ method: "eth_chainId" });
         console.log("Wallet is returning Chain ID:", currentChainId);
 
-        // If the wallet is stuck on Ethereum Mainnet (`0x1`), ask the user to refresh
+        // Step 2: If Phantom is stuck on Ethereum Mainnet (`0x1`), try re-requesting accounts
         if (currentChainId === "0x1") {
-            alert("Phantom Wallet is stuck on Ethereum Mainnet. Try refreshing the page.");
-            return;
+            alert("Phantom Wallet is stuck on Ethereum Mainnet. Reconnecting...");
+
+            // Request account access again to trigger a network update
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+
+            // Re-fetch the chain ID
+            currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+            console.log("After reconnecting, Chain ID is:", currentChainId);
+
+            if (currentChainId === "0x1") {
+                alert("Phantom is still on Ethereum Mainnet. Try restarting Phantom Wallet.");
+                return;
+            }
         }
 
-        // If Phantom does not return Monad Testnet (`0x279F`), stop the connection
+        // Step 3: If the network is still incorrect, stop the connection
         if (currentChainId !== monadChainId) {
             alert(`Unexpected network detected: ${currentChainId}. Make sure you are on Monad Testnet.`);
             return;
         }
 
-        // Connect to the contract
+        // Step 4: Request access to accounts
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+        // Step 5: Initialize Provider, Signer & Contract
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Update UI with connected wallet address
+        // Step 6: Update UI with connected wallet address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
-        alert("Wallet connection failed. Try refreshing Phantom Wallet.");
+        alert("Wallet connection failed. Try restarting Phantom Wallet.");
     }
 }
 
