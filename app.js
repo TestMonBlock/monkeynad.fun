@@ -1,19 +1,19 @@
 // Monad Testnet Configuration
-const contractAddress = "YOUR_MONAD_CONTRACT_ADDRESS"; // Replace with your deployed contract address
+const contractAddress = "0xYOUR_CONTRACT_ADDRESS_HERE"; // Replace with actual deployed contract address
 const monadRPC = "https://testnet-rpc.monad.xyz"; // Official Monad Testnet RPC
 const monadChainId = "0x279F"; // Correct Chain ID (10143 in hexadecimal)
 const monadExplorer = "https://testnet-explorer.monad.xyz"; // Official Monad Testnet Explorer
 
-// Contract ABI (Replace with actual ABI)
+// Contract ABI (Replace with the actual contract ABI from Monad Explorer)
 const contractABI = [
-    // Your contract ABI goes here
+    // Copy and paste your correct contract ABI here
 ];
 
 let provider;
 let signer;
 let contract;
 
-// Connect Wallet (MetaMask & Phantom Support)
+// Connect Wallet (Phantom & MetaMask Support)
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,31 +21,26 @@ async function connectWallet() {
             return;
         }
 
-        // Get the current Chain ID that Phantom or MetaMask is returning
-        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
-        console.log("Wallet is returning Chain ID:", currentChainId);
-
-        // If the wallet is not on Monad Testnet, try to switch
-        if (currentChainId !== monadChainId) {
-            try {
-                await window.ethereum.request({
-                    method: "wallet_switchEthereumChain",
-                    params: [{ chainId: monadChainId }]
-                });
-            } catch (switchError) {
-                console.error("Network switch failed:", switchError);
-
-                // If Monad Testnet is not recognized, alert the user
-                if (switchError.code === 4902) {
-                    alert("Phantom Wallet does not recognize Monad Testnet. Please contact Phantom support.");
-                    return;
-                }
-            }
-        }
-
         // Request account access
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
+        // Get the current Chain ID
+        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+        console.log("Wallet is returning Chain ID:", currentChainId);
+
+        // If the wallet is stuck on Ethereum Mainnet (`0x1`), ask the user to refresh
+        if (currentChainId === "0x1") {
+            alert("Phantom Wallet is stuck on Ethereum Mainnet. Try refreshing the page.");
+            return;
+        }
+
+        // If Phantom does not return Monad Testnet (`0x279F`), stop the connection
+        if (currentChainId !== monadChainId) {
+            alert(`Unexpected network detected: ${currentChainId}. Make sure you are on Monad Testnet.`);
+            return;
+        }
+
+        // Connect to the contract
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
         contract = new ethers.Contract(contractAddress, contractABI, signer);
@@ -56,7 +51,7 @@ async function connectWallet() {
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
-        alert("Wallet connection failed. Try switching networks in another wallet.");
+        alert("Wallet connection failed. Try refreshing Phantom Wallet.");
     }
 }
 
@@ -65,12 +60,12 @@ async function getUserData() {
     try {
         const user = await signer.getAddress();
         const balance = await provider.getBalance(user);
-        const miners = await contract.getMyMiners(user);
-        const eggs = await contract.getMyEggs(user);
+        const miners = await contract.getMyMiners?.(user); // Ensure function exists before calling
+        const eggs = await contract.getMyEggs?.(user); // Ensure function exists before calling
 
         document.getElementById("balance").innerText = ethers.formatEther(balance);
-        document.getElementById("miners").innerText = miners;
-        document.getElementById("eggs").innerText = eggs;
+        document.getElementById("miners").innerText = miners || 0;
+        document.getElementById("eggs").innerText = eggs || 0;
     } catch (error) {
         console.error("Error fetching user data:", error);
     }
