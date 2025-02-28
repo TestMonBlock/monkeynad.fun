@@ -1,135 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monad Testnet DApp with Web3Onboard & WalletConnect v2</title>
-  
-  <!-- Load Ethers.js (UMD build) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-  
-  <!-- Load Web3Onboard core UMD build from unpkg (version 1.13.0) -->
-  <script src="https://unpkg.com/@web3-onboard/core@1.13.0/dist/web3-onboard.umd.min.js"></script>
-  <!-- Load Web3Onboard Injected Wallets UMD build from unpkg (version 1.3.0) -->
-  <script src="https://unpkg.com/@web3-onboard/injected-wallets@1.3.0/dist/injected-wallets.umd.min.js"></script>
-  <!-- Load Web3Onboard WalletConnect UMD build from unpkg (version 1.3.0) -->
-  <script src="https://unpkg.com/@web3-onboard/walletconnect@1.3.0/dist/walletconnect.umd.min.js"></script>
-  
-  <!-- Prevent Favicon 404 -->
-  <link rel="icon" href="data:,">
-  
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #121212;
-      color: white;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      background: #ff9800;
-      border: none;
-      cursor: pointer;
-      color: white;
-    }
-    button:hover {
-      background: #e68900;
-    }
-    #walletAddress {
-      font-weight: bold;
-      color: #ff9800;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brewed Beans Game - Monad</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
 </head>
 <body>
-  <h1>Monad Testnet DApp with Web3Onboard & WalletConnect v2</h1>
-  <button id="connectWallet">Connect Wallet</button>
-  <p>Connected: <span id="walletAddress">Not connected</span></p>
-  
-  <script>
-    // --- Configuration: Update these with your actual values ---
-    const contractAddress = "YOUR_CONTRACT_ADDRESS_HERE"; // (if needed)
-    const MONAD_TESTNET_CHAIN_ID = "0x1A4"; // Monad Testnet chain ID in hex
-    const MONAD_TESTNET_RPC_URL = "https://testnet-rpc.monad.xyz/"; // Monad Testnet RPC URL
-    const WALLETCONNECT_PROJECT_ID = "YOUR_WALLETCONNECT_V2_PROJECT_ID"; // Your WalletConnect v2 project ID
+    <h1>Brewed Beans Game (Monad Testnet)</h1>
+    <button id="connectWallet">Connect Wallet</button>
+    <p>Wallet: <span id="walletAddress">Not Connected</span></p>
+    <p>Balance: <span id="balance">0</span> MON</p>
+    
+    <h3>Game Actions</h3>
+    <button id="buyEggs">Buy Eggs (0.1 MON)</button>
+    <button id="hatchEggs">Hatch Eggs</button>
+    <button id="sellEggs">Sell Eggs</button>
 
-    // --- Debug Logging: Verify Libraries ---
-    console.log("Ethers:", typeof ethers);
-    console.log("Web3Onboard core:", typeof window.Web3Onboard);
-    console.log("Injected Wallets Module:", typeof window.web3OnboardInjectedWallets);
-    console.log("WalletConnect Module:", typeof window.web3OnboardWalletConnect);
+    <h3>Your Stats</h3>
+    <p>Miners: <span id="miners">0</span></p>
+    <p>Your Eggs: <span id="eggs">0</span></p>
 
-    // --- Initialize the Injected Wallets Module ---
-    const injected = window.web3OnboardInjectedWallets && window.web3OnboardInjectedWallets.default 
-                     ? window.web3OnboardInjectedWallets.default() 
-                     : null;
-    if (!injected) {
-      console.error("Injected wallets module failed to load.");
-    }
-
-    // --- Initialize the WalletConnect Module (v2) ---
-    const walletConnect = window.web3OnboardWalletConnect && window.web3OnboardWalletConnect.default
-                          ? window.web3OnboardWalletConnect.default({
-                              projectId: WALLETCONNECT_PROJECT_ID,
-                              metadata: {
-                                name: "Monad Testnet DApp",
-                                description: "A decentralized application on Monad Testnet",
-                                url: "https://yourdapp.com",    // Replace with your DApp URL if available
-                                icons: ["https://yourdapp.com/icon.png"] // Replace with your DApp icon URL if available
-                              }
-                            })
-                          : null;
-    if (!walletConnect) {
-      console.error("WalletConnect module failed to load.");
-    }
-
-    // --- Define Chain Configuration ---
-    const chainConfig = {
-      id: MONAD_TESTNET_CHAIN_ID,
-      token: "tMON", // Adjust token symbol if needed
-      label: "Monad Testnet",
-      rpcUrl: MONAD_TESTNET_RPC_URL
-    };
-
-    // --- Initialize Web3Onboard ---
-    const onboard = window.Web3Onboard && window.Web3Onboard.default
-                    ? window.Web3Onboard.default({
-                        wallets: [injected, walletConnect].filter(Boolean),
-                        chains: [chainConfig],
-                        appMetadata: {
-                          name: "Monad Testnet DApp",
-                          icon: "<svg></svg>", // Optionally add an SVG icon
-                          description: "A decentralized application on Monad Testnet"
-                        }
-                      })
-                    : null;
-    if (!onboard) {
-      console.error("Web3Onboard failed to initialize.");
-    } else {
-      console.log("✅ Web3Onboard Initialized Successfully!");
-    }
-
-    // --- Connect Wallet Button Handler ---
-    document.getElementById("connectWallet").addEventListener("click", async () => {
-      if (!onboard) {
-        console.error("⚠ Web3Onboard is not initialized.");
-        return;
-      }
-      try {
-        const wallets = await onboard.connectWallet();
-        if (wallets && wallets.length > 0) {
-          const account = wallets[0].accounts[0].address;
-          document.getElementById("walletAddress").innerText = account;
-          console.log("✅ Wallet connected:", account);
-        } else {
-          console.log("No wallet connected.");
-        }
-      } catch (error) {
-        console.error("🚨 Wallet connection error:", error);
-        alert("Failed to connect wallet.");
-      }
-    });
-  </script>
+    <script src="app.js"></script>
 </body>
 </html>
