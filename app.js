@@ -12,8 +12,9 @@ const contractABI = [
 let provider;
 let signer;
 let contract;
+let userAddress = null;
 
-// Prevent Auto-Connect and Force Permission Request
+// **Connect Wallet & Update UI**
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,10 +22,7 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: **Request Wallet Permissions Every Time**
-        const permissions = await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
-        
-        // Step 2: **Explicitly Request Wallet Connection**
+        // **Step 1: Request Wallet Connection (Forces Phantom to Ask Permission)**
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -32,11 +30,12 @@ async function connectWallet() {
             return;
         }
 
-        // Step 3: Use Phantom's Provider (`window.ethereum`) for Transactions
+        // **Step 2: Use Phantom's Provider for Transactions**
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
+        userAddress = accounts[0]; // Store connected address
 
-        // Step 4: Use Monad RPC for Network Check
+        // **Step 3: Use Monad RPC for Network Check**
         const dataProvider = new ethers.JsonRpcProvider(monadRPC);
         const chainId = await dataProvider.send("eth_chainId", []);
         console.log("Monad RPC is returning Chain ID:", chainId);
@@ -46,14 +45,13 @@ async function connectWallet() {
             return;
         }
 
-        // Step 5: Store Connection Status in Session Storage (Prevents Auto-Login)
-        sessionStorage.setItem("phantomConnected", "true");
-
-        // Step 6: Connect to Contract
+        // **Step 4: Connect to Smart Contract**
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 7: Update UI with Connected Wallet Address
-        document.getElementById("walletAddress").innerText = accounts[0];
+        // **Step 5: Update UI with Wallet Address & Balance**
+        document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
+        document.getElementById("connectWallet").innerText = "Disconnect";
+        document.getElementById("connectWallet").onclick = disconnectWallet; // Change button action
 
         getUserData(dataProvider);
     } catch (error) {
@@ -62,45 +60,48 @@ async function connectWallet() {
     }
 }
 
-// Fetch user stats (Balance, Miners, Eggs)
-async function getUserData(dataProvider) {
-    try {
-        const user = await signer.getAddress();
-        const balance = await dataProvider.getBalance(user);
-        const miners = await contract.getMyMiners?.(user);
-        const eggs = await contract.getMyEggs?.(user);
-
-        document.getElementById("balance").innerText = ethers.formatEther(balance);
-        document.getElementById("miners").innerText = miners || 0;
-        document.getElementById("eggs").innerText = eggs || 0;
-    } catch (error) {
-        console.error("Error fetching user data:", error);
-    }
-}
-
-// **Force Phantom to Require Login on Every Visit**
+// **Disconnect Wallet & Reset UI**
 async function disconnectWallet() {
     try {
+        userAddress = null;
         sessionStorage.removeItem("phantomConnected");
 
-        // Trick: Request empty account permissions to force disconnect
-        await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
-
-        // Clear UI
+        // **Clear UI**
         document.getElementById("walletAddress").innerText = "Disconnected";
+        document.getElementById("connectWallet").innerText = "Connect Wallet";
+        document.getElementById("connectWallet").onclick = connectWallet; // Reset button action
 
-        alert("Phantom Wallet disconnected. You will need to reconnect next time.");
+        alert("Phantom Wallet disconnected. You will need to reconnect.");
     } catch (error) {
         console.error("Error disconnecting wallet:", error);
     }
 }
 
-// **Trigger Disconnect on Page Exit**
-window.addEventListener("beforeunload", disconnectWallet);
+// **Fetch User Stats (Balance, Miners, Eggs)**
+async function getUserData(dataProvider) {
+    try {
+        if (!userAddress) return;
 
-// Buy eggs (Deposit MON)
+        const balance = await dataProvider.getBalance(userAddress);
+        const miners = await contract.getMyMiners?.(userAddress);
+        const eggs = await contract.getMyEggs?.(userAddress);
+
+        document.getElementById("balance").innerText = `Balance: ${ethers.formatEther(balance)} MON`;
+        document.getElementById("miners").innerText = `Miners: ${miners || 0}`;
+        document.getElementById("eggs").innerText = `Eggs: ${eggs || 0}`;
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    }
+}
+
+// **Buy Eggs (Deposit MON)**
 async function buyEggs() {
     try {
+        if (!contract) {
+            alert("Please connect your wallet first.");
+            return;
+        }
+
         const tx = await contract.buyEggs("0x0000000000000000000000000000000000000000", { value: ethers.parseEther("0.1") });
         await tx.wait();
         alert("Eggs Purchased!");
@@ -110,9 +111,14 @@ async function buyEggs() {
     }
 }
 
-// Hatch eggs
+// **Hatch Eggs**
 async function hatchEggs() {
     try {
+        if (!contract) {
+            alert("Please connect your wallet first.");
+            return;
+        }
+
         const tx = await contract.hatchEggs("0x0000000000000000000000000000000000000000");
         await tx.wait();
         alert("Eggs Hatched!");
@@ -122,9 +128,14 @@ async function hatchEggs() {
     }
 }
 
-// Sell eggs (Withdraw MON)
+// **Sell Eggs (Withdraw MON)**
 async function sellEggs() {
     try {
+        if (!contract) {
+            alert("Please connect your wallet first.");
+            return;
+        }
+
         const tx = await contract.sellEggs();
         await tx.wait();
         alert("Eggs Sold!");
