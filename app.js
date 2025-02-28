@@ -62,7 +62,7 @@ async function connectWallet() {
     }
 }
 
-// **Disconnect Wallet & Fully Revoke Access**
+// **Disconnect Wallet & Prevent Reconnection**
 async function disconnectWallet() {
     try {
         userAddress = null;
@@ -73,11 +73,13 @@ async function disconnectWallet() {
         document.getElementById("connectWallet").innerText = "Connect Wallet";
         document.getElementById("connectWallet").onclick = connectWallet; // Reset button action
 
-        // **Step 2: Reset Phantom Permissions (Trick Phantom into Forgetting Connection)**
+        // **Step 2: Trick Phantom into Forgetting the Connection**
         await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: [] }] });
 
-        // **Step 3: Force Phantom to Forget the Connection**
-        await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: [] }] });
+        // **Step 3: Set Phantom to an Empty Account to Block Auto-Reconnect**
+        Object.defineProperty(window.ethereum, "selectedAddress", {
+            get: () => null,
+        });
 
         alert("Phantom Wallet disconnected. You will need to reconnect manually.");
     } catch (error) {
