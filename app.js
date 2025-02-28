@@ -53,6 +53,8 @@ async function connectWallet() {
         document.getElementById("connectWallet").innerText = "Disconnect";
         document.getElementById("connectWallet").onclick = disconnectWallet; // Change button action
 
+        sessionStorage.setItem("phantomConnected", "true"); // Store connection state
+
         getUserData(dataProvider);
     } catch (error) {
         console.error("Wallet connection failed:", error);
@@ -60,18 +62,24 @@ async function connectWallet() {
     }
 }
 
-// **Disconnect Wallet & Reset UI**
+// **Disconnect Wallet & Fully Revoke Access**
 async function disconnectWallet() {
     try {
         userAddress = null;
         sessionStorage.removeItem("phantomConnected");
 
-        // **Clear UI**
+        // **Step 1: Clear UI**
         document.getElementById("walletAddress").innerText = "Disconnected";
         document.getElementById("connectWallet").innerText = "Connect Wallet";
         document.getElementById("connectWallet").onclick = connectWallet; // Reset button action
 
-        alert("Phantom Wallet disconnected. You will need to reconnect.");
+        // **Step 2: Reset Phantom Permissions (Trick Phantom into Forgetting Connection)**
+        await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: [] }] });
+
+        // **Step 3: Force Phantom to Forget the Connection**
+        await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: [] }] });
+
+        alert("Phantom Wallet disconnected. You will need to reconnect manually.");
     } catch (error) {
         console.error("Error disconnecting wallet:", error);
     }
@@ -93,6 +101,9 @@ async function getUserData(dataProvider) {
         console.error("Error fetching user data:", error);
     }
 }
+
+// **Ensure Phantom Requires Login on Every Visit**
+window.addEventListener("beforeunload", disconnectWallet);
 
 // **Buy Eggs (Deposit MON)**
 async function buyEggs() {
