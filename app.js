@@ -14,13 +14,16 @@ let signer;
 let contract;
 let userAddress = null;
 
-// **Connect Wallet & Update UI**
+// **Connect Wallet & Ensure Popup for Approval**
 async function connectWallet() {
     try {
         if (!window.ethereum) {
             alert("No EVM-compatible wallet found. Install MetaMask or Phantom.");
             return;
         }
+
+        // **Ensure Wallet is Not Auto-Connected Before Requesting Accounts**
+        userAddress = null;
 
         // **Step 1: Request Wallet Connection (Forces Phantom to Ask Permission)**
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -76,10 +79,13 @@ async function disconnectWallet() {
         // **Step 2: Trick Phantom into Forgetting the Connection**
         await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: [] }] });
 
-        // **Step 3: Set Phantom to an Empty Account to Block Auto-Reconnect**
+        // **Step 3: Override `window.ethereum.selectedAddress` to Force Logout**
         Object.defineProperty(window.ethereum, "selectedAddress", {
             get: () => null,
         });
+
+        // **Step 4: Prevent Auto-Connect by Removing All Wallet Sessions**
+        await window.ethereum.request({ method: "eth_requestAccounts", params: [] });
 
         alert("Phantom Wallet disconnected. You will need to reconnect manually.");
     } catch (error) {
