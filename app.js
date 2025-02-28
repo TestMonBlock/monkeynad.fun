@@ -1,55 +1,72 @@
-// Monad Testnet Config
+// Monad Testnet Configuration (From Chainlist)
 const contractAddress = "YOUR_MONAD_CONTRACT_ADDRESS"; // Replace with actual deployed address
-const monadRPC = "https://monad.testnet.rpc"; // Replace with Monad Testnet RPC URL
-const monadChainId = "0xMONAD_CHAIN_ID"; // Replace with actual Chain ID
+const monadRPC = "https://testnet-rpc.monad.xyz"; // Official Monad Testnet RPC
+const monadChainId = "0x279F"; // Correct Chain ID (10143 in hexadecimal)
+const monadExplorer = "https://testnet-explorer.monad.xyz"; // Official Monad Testnet Explorer
 
-// ABI of your contract (Replace with actual ABI)
+// Contract ABI (Replace with actual ABI)
 const contractABI = [
-    // ABI goes here, replace with the real contract ABI
+    // Your contract ABI goes here
 ];
 
-// Ethereum provider
-const provider = new ethers.BrowserProvider(window.ethereum);
+let provider;
 let signer;
 let contract;
 
+// Connect Wallet (MetaMask & Phantom Support)
 async function connectWallet() {
     try {
-        if (!window.ethereum) throw new Error("No EVM-compatible wallet found.");
+        if (!window.ethereum) {
+            alert("No EVM-compatible wallet found. Install MetaMask or Phantom.");
+            return;
+        }
 
-        // Prompt user to switch/add Monad Testnet
-        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{
-            chainId: monadChainId,
-            rpcUrls: [monadRPC],
-            chainName: "Monad Testnet",
-            nativeCurrency: { name: "Monad", symbol: "MON", decimals: 18 }
-        }] });
+        // Request to add Monad Testnet if not already added
+        await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+                chainId: monadChainId,
+                chainName: "Monad Testnet",
+                rpcUrls: [monadRPC],
+                nativeCurrency: { name: "Monad", symbol: "MON", decimals: 18 },
+                blockExplorerUrls: [monadExplorer]
+            }]
+        });
 
-        // Request wallet connection
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        
+        // Request account access
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+        provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
         contract = new ethers.Contract(contractAddress, contractABI, signer);
-        document.getElementById("walletAddress").innerText = await signer.getAddress();
+
+        // Update UI with connected wallet address
+        document.getElementById("walletAddress").innerText = accounts[0];
+
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
+        alert("Wallet connection failed. Check console for details.");
     }
 }
 
-// Fetch user stats
+// Fetch user stats (Balance, Miners, Eggs)
 async function getUserData() {
-    const user = await signer.getAddress();
-    const balance = await provider.getBalance(user);
-    const miners = await contract.getMyMiners(user);
-    const eggs = await contract.getMyEggs(user);
+    try {
+        const user = await signer.getAddress();
+        const balance = await provider.getBalance(user);
+        const miners = await contract.getMyMiners(user);
+        const eggs = await contract.getMyEggs(user);
 
-    document.getElementById("balance").innerText = ethers.formatEther(balance);
-    document.getElementById("miners").innerText = miners;
-    document.getElementById("eggs").innerText = eggs;
+        document.getElementById("balance").innerText = ethers.formatEther(balance);
+        document.getElementById("miners").innerText = miners;
+        document.getElementById("eggs").innerText = eggs;
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    }
 }
 
-// Buy eggs (deposit MON)
+// Buy eggs (Deposit MON)
 async function buyEggs() {
     try {
         const tx = await contract.buyEggs("0x0000000000000000000000000000000000000000", { value: ethers.parseEther("0.1") });
@@ -73,7 +90,7 @@ async function hatchEggs() {
     }
 }
 
-// Sell eggs (withdraw MON)
+// Sell eggs (Withdraw MON)
 async function sellEggs() {
     try {
         const tx = await contract.sellEggs();
