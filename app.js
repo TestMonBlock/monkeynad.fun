@@ -21,10 +21,7 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Clear Cached Accounts to Prevent Auto-Login
-        sessionStorage.removeItem("phantomConnected");
-
-        // Step 2: Request Wallet Connection (Forces Password Entry)
+        // Step 1: Request Wallet Connection (Forces Password Entry)
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -32,11 +29,11 @@ async function connectWallet() {
             return;
         }
 
-        // Step 3: Use Phantom's Provider (`window.ethereum`) for Transactions
+        // Step 2: Use Phantom's Provider (`window.ethereum`) for Transactions
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
 
-        // Step 4: Use Monad RPC for Network Check
+        // Step 3: Use Monad RPC for Network Check
         const dataProvider = new ethers.JsonRpcProvider(monadRPC);
         const chainId = await dataProvider.send("eth_chainId", []);
         console.log("Monad RPC is returning Chain ID:", chainId);
@@ -46,13 +43,13 @@ async function connectWallet() {
             return;
         }
 
-        // Step 5: Store Connection Status (Prevents Auto-Login on Page Reload)
+        // Step 4: Store Connection Status
         sessionStorage.setItem("phantomConnected", "true");
 
-        // Step 6: Connect to Contract
+        // Step 5: Connect to Contract
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 7: Update UI with Connected Wallet Address
+        // Step 6: Update UI with Connected Wallet Address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData(dataProvider);
@@ -78,10 +75,25 @@ async function getUserData(dataProvider) {
     }
 }
 
-// Force Logout on Page Exit (User Must Reconnect on Return)
-window.onbeforeunload = function () {
-    sessionStorage.removeItem("phantomConnected");
-};
+// Force Phantom to Require Login on Page Reload
+async function disconnectWallet() {
+    try {
+        sessionStorage.removeItem("phantomConnected");
+
+        // Trick: Request an empty account array to force disconnect
+        await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+
+        // Clear UI
+        document.getElementById("walletAddress").innerText = "Disconnected";
+
+        alert("Phantom Wallet disconnected. Please reconnect on your next visit.");
+    } catch (error) {
+        console.error("Error disconnecting wallet:", error);
+    }
+}
+
+// Trigger Disconnect on Page Exit
+window.addEventListener("beforeunload", disconnectWallet);
 
 // Buy eggs (Deposit MON)
 async function buyEggs() {
