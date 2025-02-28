@@ -13,7 +13,7 @@ let provider;
 let signer;
 let contract;
 
-// Connect Wallet (Fixed for Phantom & MetaMask)
+// Connect Wallet (Phantom & MetaMask Support)
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,11 +21,7 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Use BrowserProvider to interact with Phantom/MetaMask
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner(); // Ensure Phantom provides an account
-
-        // Step 2: Request Wallet Connection
+        // Step 1: Request Wallet Connection
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -33,19 +29,48 @@ async function connectWallet() {
             return;
         }
 
-        // Step 3: Verify Network
-        const chainId = await provider.send("eth_chainId", []);
-        console.log("Monad RPC is returning Chain ID:", chainId);
+        // Step 2: Get Current Chain ID
+        let currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+        console.log("Wallet is returning Chain ID:", currentChainId);
 
-        if (chainId !== monadChainId) {
-            alert(`Unexpected network detected: ${chainId}. Make sure you are on Monad Testnet.`);
+        // Step 3: If Phantom is stuck on Ethereum Mainnet (`0x1`), try to add Monad Testnet
+        if (currentChainId === "0x1") {
+            alert("Phantom Wallet is stuck on Ethereum Mainnet. Attempting to add Monad Testnet...");
+
+            try {
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [{
+                        chainId: "0x279F",
+                        chainName: "Monad Testnet",
+                        nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+                        rpcUrls: ["https://testnet-rpc.monad.xyz"],
+                        blockExplorerUrls: ["https://testnet-explorer.monad.xyz"]
+                    }]
+                });
+
+                // Re-fetch the chain ID after adding Monad Testnet
+                currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+                console.log("After adding Monad, Chain ID is:", currentChainId);
+            } catch (addError) {
+                console.error("Failed to add Monad Testnet:", addError);
+                alert("Failed to add Monad Testnet. Please contact Phantom support.");
+                return;
+            }
+        }
+
+        // Step 4: Verify Network
+        if (currentChainId !== monadChainId) {
+            alert(`Unexpected network detected: ${currentChainId}. Make sure you are on Monad Testnet.`);
             return;
         }
 
-        // Step 4: Connect to Contract
+        // Step 5: Connect to Provider & Contract
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 5: Update UI with connected wallet address
+        // Step 6: Update UI with Connected Wallet Address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData();
