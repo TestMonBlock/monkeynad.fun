@@ -21,11 +21,7 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Use BrowserProvider to interact with Phantom/MetaMask
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner(); // Ensure Phantom provides an account
-
-        // Step 2: Request Wallet Connection
+        // Step 1: Request Wallet Connection
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -33,8 +29,14 @@ async function connectWallet() {
             return;
         }
 
-        // Step 3: Verify Network
-        const chainId = await provider.send("eth_chainId", []);
+        // Step 2: Use Phantom's Provider (`window.ethereum`) for Transactions
+        provider = new ethers.BrowserProvider(window.ethereum); // Use Phantom’s provider
+        signer = await provider.getSigner(); // Fix: Ensure Phantom's signer is used
+
+        // Step 3: **Use Monad RPC for Network Check (Avoid Phantom’s Ethereum Issue)**
+        const dataProvider = new ethers.JsonRpcProvider(monadRPC); // Used for reading blockchain data
+        const chainId = await dataProvider.send("eth_chainId", []); // Fetch correct chain ID
+
         console.log("Monad RPC is returning Chain ID:", chainId);
 
         if (chainId !== monadChainId) {
@@ -45,10 +47,10 @@ async function connectWallet() {
         // Step 4: Connect to Contract
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 5: Update UI with connected wallet address
+        // Step 5: Update UI with Connected Wallet Address
         document.getElementById("walletAddress").innerText = accounts[0];
 
-        getUserData();
+        getUserData(dataProvider);
     } catch (error) {
         console.error("Wallet connection failed:", error);
         alert("Wallet connection failed. Ensure Phantom is unlocked and on Monad Testnet.");
@@ -56,10 +58,10 @@ async function connectWallet() {
 }
 
 // Fetch user stats (Balance, Miners, Eggs)
-async function getUserData() {
+async function getUserData(dataProvider) {
     try {
         const user = await signer.getAddress();
-        const balance = await provider.getBalance(user);
+        const balance = await dataProvider.getBalance(user); // Use dataProvider for reading blockchain
         const miners = await contract.getMyMiners?.(user); // Ensure function exists before calling
         const eggs = await contract.getMyEggs?.(user); // Ensure function exists before calling
 
@@ -77,7 +79,7 @@ async function buyEggs() {
         const tx = await contract.buyEggs("0x0000000000000000000000000000000000000000", { value: ethers.parseEther("0.1") });
         await tx.wait();
         alert("Eggs Purchased!");
-        getUserData();
+        getUserData(new ethers.JsonRpcProvider(monadRPC));
     } catch (error) {
         console.error("Error buying eggs:", error);
     }
@@ -89,7 +91,7 @@ async function hatchEggs() {
         const tx = await contract.hatchEggs("0x0000000000000000000000000000000000000000");
         await tx.wait();
         alert("Eggs Hatched!");
-        getUserData();
+        getUserData(new ethers.JsonRpcProvider(monadRPC));
     } catch (error) {
         console.error("Error hatching eggs:", error);
     }
@@ -101,7 +103,7 @@ async function sellEggs() {
         const tx = await contract.sellEggs();
         await tx.wait();
         alert("Eggs Sold!");
-        getUserData();
+        getUserData(new ethers.JsonRpcProvider(monadRPC));
     } catch (error) {
         console.error("Error selling eggs:", error);
     }
