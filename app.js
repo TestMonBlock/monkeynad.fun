@@ -1,5 +1,5 @@
 // Monad Testnet Configuration (From Chainlist)
-const contractAddress = "YOUR_MONAD_CONTRACT_ADDRESS"; // Replace with actual deployed address
+const contractAddress = "YOUR_MONAD_CONTRACT_ADDRESS"; // Replace with your deployed contract address
 const monadRPC = "https://testnet-rpc.monad.xyz"; // Official Monad Testnet RPC
 const monadChainId = "0x279F"; // Correct Chain ID (10143 in hexadecimal)
 const monadExplorer = "https://testnet-explorer.monad.xyz"; // Official Monad Testnet Explorer
@@ -21,16 +21,24 @@ async function connectWallet() {
             return;
         }
 
-        // Request to add Monad Testnet if not already added
+        const chainIdHex = "0x279F"; // Monad Testnet Chain ID (10143 in hex)
+
+        // Force add Monad Testnet
         await window.ethereum.request({
             method: "wallet_addEthereumChain",
             params: [{
-                chainId: monadChainId,
+                chainId: chainIdHex,
                 chainName: "Monad Testnet",
                 rpcUrls: [monadRPC],
                 nativeCurrency: { name: "Monad", symbol: "MON", decimals: 18 },
                 blockExplorerUrls: [monadExplorer]
             }]
+        });
+
+        // Switch to Monad Testnet (Phantom might need this separately)
+        await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: chainIdHex }]
         });
 
         // Request account access
