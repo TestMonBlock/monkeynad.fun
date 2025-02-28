@@ -13,7 +13,7 @@ let provider;
 let signer;
 let contract;
 
-// Connect Wallet (Phantom & MetaMask Support)
+// Connect Wallet (Fixed for Phantom & MetaMask)
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,17 +21,17 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Request Wallet Connection
+        // Step 1: Use BrowserProvider to interact with Phantom/MetaMask
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner(); // Ensure Phantom provides an account
+
+        // Step 2: Request Wallet Connection
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
             alert("No accounts found. Please unlock your wallet.");
             return;
         }
-
-        // Step 2: Force Connect to Monad Testnet RPC Directly (Bypass Phantom's Ethereum Provider)
-        provider = new ethers.JsonRpcProvider(monadRPC); // Directly connect to Monad Testnet
-        signer = await provider.getSigner(accounts[0]); // Use connected Phantom account
 
         // Step 3: Verify Network
         const chainId = await provider.send("eth_chainId", []);
@@ -45,7 +45,7 @@ async function connectWallet() {
         // Step 4: Connect to Contract
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 5: Update UI with Connected Wallet Address
+        // Step 5: Update UI with connected wallet address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData();
