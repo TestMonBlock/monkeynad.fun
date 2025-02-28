@@ -3,24 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brewed Beans Game - Monad</title>
+    <title>Monad DApp</title>
+    <link rel="stylesheet" href="style.css"> <!-- Brewed Beans CSS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
 </head>
 <body>
-    <h1>Brewed Beans Game (Monad Testnet)</h1>
-    <button id="connectWallet">Connect Wallet</button>
-    <p>Wallet: <span id="walletAddress">Not Connected</span></p>
-    <p>Balance: <span id="balance">0</span> MON</p>
-    
-    <h3>Game Actions</h3>
-    <button id="buyEggs">Buy Eggs (0.1 MON)</button>
-    <button id="hatchEggs">Hatch Eggs</button>
-    <button id="sellEggs">Sell Eggs</button>
+    <div class="container">
+        <h1 class="title">Brewed Beans DApp</h1>
+        
+        <!-- Wallet Connection -->
+        <button id="connectWallet" class="connect-btn">Connect Wallet</button>
+        <p id="walletAddress" class="wallet-info">Not Connected</p>
+        
+        <!-- Stats Section -->
+        <div class="stats">
+            <p id="balance">Balance: -- MON</p>
+            <p id="miners">Miners: --</p>
+            <p id="eggs">Eggs: --</p>
+        </div>
 
-    <h3>Your Stats</h3>
-    <p>Miners: <span id="miners">0</span></p>
-    <p>Your Eggs: <span id="eggs">0</span></p>
+        <!-- Actions -->
+        <div class="buttons">
+            <button id="buyEggs" class="action-btn">Buy Eggs</button>
+            <button id="hatchEggs" class="action-btn">Hatch Eggs</button>
+            <button id="sellEggs" class="action-btn">Sell Eggs</button>
+        </div>
+    </div>
 
-    <script src="app.js"></script>
+    <script src="app.js"></script> <!-- Connects JS functionality -->
 </body>
 </html>

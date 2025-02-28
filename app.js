@@ -2,18 +2,13 @@
 const contractAddress = "0xYOUR_CONTRACT_ADDRESS_HERE"; // Replace with actual deployed contract address
 const monadRPC = "https://testnet-rpc.monad.xyz"; // Official Monad Testnet RPC
 const monadChainId = "0x279F"; // Correct Chain ID (10143 in hexadecimal)
-const monadExplorer = "https://testnet-explorer.monad.xyz"; // Official Monad Testnet Explorer
-
-// Contract ABI (Replace with the actual contract ABI from Monad Explorer)
-const contractABI = [
-    // Copy and paste your correct contract ABI here
-];
 
 let provider;
 let signer;
 let contract;
+let userAddress = null;
 
-// Connect Wallet (Fixed for Phantom & MetaMask)
+// **Connect Wallet & Update UI**
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,11 +16,7 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Use BrowserProvider to interact with Phantom/MetaMask
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner(); // Ensure Phantom provides an account
-
-        // Step 2: Request Wallet Connection
+        // Request Wallet Connection
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -33,47 +24,59 @@ async function connectWallet() {
             return;
         }
 
-        // Step 3: Verify Network
-        const chainId = await provider.send("eth_chainId", []);
-        console.log("Monad RPC is returning Chain ID:", chainId);
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        userAddress = accounts[0];
 
-        if (chainId !== monadChainId) {
-            alert(`Unexpected network detected: ${chainId}. Make sure you are on Monad Testnet.`);
-            return;
-        }
-
-        // Step 4: Connect to Contract
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-        // Step 5: Update UI with connected wallet address
-        document.getElementById("walletAddress").innerText = accounts[0];
+        // **Change UI**
+        document.getElementById("walletAddress").innerText = `Connected: ${userAddress}`;
+        document.getElementById("connectWallet").innerText = "Disconnect";
+        document.getElementById("connectWallet").onclick = disconnectWallet;
 
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
-        alert("Wallet connection failed. Ensure Phantom is unlocked and on Monad Testnet.");
+        alert("Wallet connection failed. Ensure Phantom is unlocked.");
     }
 }
 
-// Fetch user stats (Balance, Miners, Eggs)
+// **Disconnect Wallet & Reset UI**
+async function disconnectWallet() {
+    try {
+        userAddress = null;
+
+        // **Reset UI**
+        document.getElementById("walletAddress").innerText = "Not Connected";
+        document.getElementById("connectWallet").innerText = "Connect Wallet";
+        document.getElementById("connectWallet").onclick = connectWallet;
+
+        alert("Phantom Wallet disconnected.");
+    } catch (error) {
+        console.error("Error disconnecting wallet:", error);
+    }
+}
+
+// **Fetch User Stats**
 async function getUserData() {
     try {
-        const user = await signer.getAddress();
-        const balance = await provider.getBalance(user);
-        const miners = await contract.getMyMiners?.(user); // Ensure function exists before calling
-        const eggs = await contract.getMyEggs?.(user); // Ensure function exists before calling
+        if (!userAddress) return;
 
-        document.getElementById("balance").innerText = ethers.formatEther(balance);
-        document.getElementById("miners").innerText = miners || 0;
-        document.getElementById("eggs").innerText = eggs || 0;
+        const dataProvider = new ethers.JsonRpcProvider(monadRPC);
+        const balance = await dataProvider.getBalance(userAddress);
+
+        document.getElementById("balance").innerText = `Balance: ${ethers.formatEther(balance)} MON`;
     } catch (error) {
         console.error("Error fetching user data:", error);
     }
 }
 
-// Buy eggs (Deposit MON)
+// **Buy Eggs**
 async function buyEggs() {
     try {
+        if (!contract) {
+            alert("Please connect your wallet first.");
+            return;
+        }
         const tx = await contract.buyEggs("0x0000000000000000000000000000000000000000", { value: ethers.parseEther("0.1") });
         await tx.wait();
         alert("Eggs Purchased!");
@@ -83,32 +86,6 @@ async function buyEggs() {
     }
 }
 
-// Hatch eggs
-async function hatchEggs() {
-    try {
-        const tx = await contract.hatchEggs("0x0000000000000000000000000000000000000000");
-        await tx.wait();
-        alert("Eggs Hatched!");
-        getUserData();
-    } catch (error) {
-        console.error("Error hatching eggs:", error);
-    }
-}
-
-// Sell eggs (Withdraw MON)
-async function sellEggs() {
-    try {
-        const tx = await contract.sellEggs();
-        await tx.wait();
-        alert("Eggs Sold!");
-        getUserData();
-    } catch (error) {
-        console.error("Error selling eggs:", error);
-    }
-}
-
-// Attach event listeners
+// **Attach event listeners**
 document.getElementById("connectWallet").addEventListener("click", connectWallet);
 document.getElementById("buyEggs").addEventListener("click", buyEggs);
-document.getElementById("hatchEggs").addEventListener("click", hatchEggs);
-document.getElementById("sellEggs").addEventListener("click", sellEggs);
