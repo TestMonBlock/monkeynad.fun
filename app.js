@@ -25,19 +25,32 @@ async function connectWallet() {
         let currentChainId = await window.ethereum.request({ method: "eth_chainId" });
         console.log("Wallet is returning Chain ID:", currentChainId);
 
-        // Step 2: If Phantom is stuck on Ethereum Mainnet (`0x1`), try re-requesting accounts
+        // Step 2: If Phantom is stuck on Ethereum Mainnet (`0x1`), force it to use Monad Testnet RPC
         if (currentChainId === "0x1") {
-            alert("Phantom Wallet is stuck on Ethereum Mainnet. Reconnecting...");
+            alert("Phantom Wallet is stuck on Ethereum Mainnet. Trying to force Monad Testnet...");
 
-            // Request account access again to trigger a network update
-            await window.ethereum.request({ method: "eth_requestAccounts" });
+            try {
+                // Force Phantom to use Monad Testnet by sending a request to the RPC
+                const response = await fetch("https://testnet-rpc.monad.xyz", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_chainId", params: [] }),
+                });
 
-            // Re-fetch the chain ID
-            currentChainId = await window.ethereum.request({ method: "eth_chainId" });
-            console.log("After reconnecting, Chain ID is:", currentChainId);
+                const rpcResult = await response.json();
+                console.log("Monad RPC responded with Chain ID:", rpcResult);
+
+                // Re-fetch the chain ID from Phantom after forcing the RPC request
+                currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+                console.log("After RPC request, Chain ID is:", currentChainId);
+            } catch (rpcError) {
+                console.error("Failed to connect to Monad RPC:", rpcError);
+                alert("Failed to connect to Monad Testnet RPC. Try restarting Phantom.");
+                return;
+            }
 
             if (currentChainId === "0x1") {
-                alert("Phantom is still on Ethereum Mainnet. Try restarting Phantom Wallet.");
+                alert("Phantom is still stuck on Ethereum Mainnet. Try restarting Phantom Wallet.");
                 return;
             }
         }
