@@ -1,4 +1,4 @@
-// Monad Testnet Configuration (From Chainlist)
+// Monad Testnet Configuration
 const contractAddress = "YOUR_MONAD_CONTRACT_ADDRESS"; // Replace with your deployed contract address
 const monadRPC = "https://testnet-rpc.monad.xyz"; // Official Monad Testnet RPC
 const monadChainId = "0x279F"; // Correct Chain ID (10143 in hexadecimal)
@@ -21,25 +21,14 @@ async function connectWallet() {
             return;
         }
 
-        const chainIdHex = "0x279F"; // Monad Testnet Chain ID (10143 in hex)
+        const expectedChainId = monadChainId; // Monad Testnet Chain ID (10143 in hex)
+        const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
 
-        // Force add Monad Testnet
-        await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [{
-                chainId: chainIdHex,
-                chainName: "Monad Testnet",
-                rpcUrls: [monadRPC],
-                nativeCurrency: { name: "Monad", symbol: "MON", decimals: 18 },
-                blockExplorerUrls: [monadExplorer]
-            }]
-        });
-
-        // Switch to Monad Testnet (Phantom might need this separately)
-        await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: chainIdHex }]
-        });
+        // If wallet is connected to the wrong network, show a message
+        if (currentChainId !== expectedChainId) {
+            alert("Please switch to Monad Testnet manually in Phantom and try again.");
+            return;
+        }
 
         // Request account access
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -54,7 +43,7 @@ async function connectWallet() {
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
-        alert("Wallet connection failed. Check console for details.");
+        alert("Wallet connection failed. Make sure Monad Testnet is selected in Phantom.");
     }
 }
 
