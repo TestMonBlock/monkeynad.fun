@@ -33,13 +33,14 @@ async function connectWallet() {
         provider = new ethers.BrowserProvider(window.ethereum); // Use Phantom’s provider
         signer = await provider.getSigner(); // Fix: Ensure Phantom's signer is used
 
-        // Step 3: **Use Monad RPC for Network Check (Avoid Phantom’s Ethereum Issue)**
+        // Step 3: **Use Monad RPC for Network Check**
         const dataProvider = new ethers.JsonRpcProvider(monadRPC); // Used for reading blockchain data
         const chainId = await dataProvider.send("eth_chainId", []); // Fetch correct chain ID
 
         console.log("Monad RPC is returning Chain ID:", chainId);
 
-        if (chainId !== monadChainId) {
+        // 🔥 **Fix: Ensure we correctly accept `0x279F`**
+        if (chainId.toLowerCase() !== monadChainId.toLowerCase()) {
             alert(`Unexpected network detected: ${chainId}. Make sure you are on Monad Testnet.`);
             return;
         }
