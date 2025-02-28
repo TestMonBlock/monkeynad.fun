@@ -13,7 +13,7 @@ let provider;
 let signer;
 let contract;
 
-// Connect Wallet (Forces Re-login on Page Reload)
+// Prevent Auto-Connect and Force Permission Request
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,7 +21,10 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Request Wallet Connection (Forces Password Entry)
+        // Step 1: **Request Wallet Permissions Every Time**
+        const permissions = await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+        
+        // Step 2: **Explicitly Request Wallet Connection**
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
         if (!accounts || accounts.length === 0) {
@@ -29,11 +32,11 @@ async function connectWallet() {
             return;
         }
 
-        // Step 2: Use Phantom's Provider (`window.ethereum`) for Transactions
+        // Step 3: Use Phantom's Provider (`window.ethereum`) for Transactions
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
 
-        // Step 3: Use Monad RPC for Network Check
+        // Step 4: Use Monad RPC for Network Check
         const dataProvider = new ethers.JsonRpcProvider(monadRPC);
         const chainId = await dataProvider.send("eth_chainId", []);
         console.log("Monad RPC is returning Chain ID:", chainId);
@@ -43,13 +46,13 @@ async function connectWallet() {
             return;
         }
 
-        // Step 4: Store Connection Status
+        // Step 5: Store Connection Status in Session Storage (Prevents Auto-Login)
         sessionStorage.setItem("phantomConnected", "true");
 
-        // Step 5: Connect to Contract
+        // Step 6: Connect to Contract
         contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        // Step 6: Update UI with Connected Wallet Address
+        // Step 7: Update UI with Connected Wallet Address
         document.getElementById("walletAddress").innerText = accounts[0];
 
         getUserData(dataProvider);
@@ -75,24 +78,24 @@ async function getUserData(dataProvider) {
     }
 }
 
-// Force Phantom to Require Login on Page Reload
+// **Force Phantom to Require Login on Every Visit**
 async function disconnectWallet() {
     try {
         sessionStorage.removeItem("phantomConnected");
 
-        // Trick: Request an empty account array to force disconnect
+        // Trick: Request empty account permissions to force disconnect
         await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
 
         // Clear UI
         document.getElementById("walletAddress").innerText = "Disconnected";
 
-        alert("Phantom Wallet disconnected. Please reconnect on your next visit.");
+        alert("Phantom Wallet disconnected. You will need to reconnect next time.");
     } catch (error) {
         console.error("Error disconnecting wallet:", error);
     }
 }
 
-// Trigger Disconnect on Page Exit
+// **Trigger Disconnect on Page Exit**
 window.addEventListener("beforeunload", disconnectWallet);
 
 // Buy eggs (Deposit MON)
