@@ -13,7 +13,7 @@ let provider;
 let signer;
 let contract;
 
-// Connect Wallet (Bypassing Phantom’s `window.ethereum`)
+// Connect Wallet (Fixed for Phantom & MetaMask)
 async function connectWallet() {
     try {
         if (!window.ethereum) {
@@ -21,14 +21,19 @@ async function connectWallet() {
             return;
         }
 
-        // Step 1: Force Connect to Monad Testnet RPC Directly
-        provider = new ethers.JsonRpcProvider(monadRPC); // Direct connection to Monad Testnet
-        signer = await provider.getSigner();
+        // Step 1: Use BrowserProvider to interact with Phantom/MetaMask
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner(); // Ensure Phantom provides an account
 
         // Step 2: Request Wallet Connection
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
-        // Step 3: Verify Network (Force Check with RPC)
+        if (!accounts || accounts.length === 0) {
+            alert("No accounts found. Please unlock your wallet.");
+            return;
+        }
+
+        // Step 3: Verify Network
         const chainId = await provider.send("eth_chainId", []);
         console.log("Monad RPC is returning Chain ID:", chainId);
 
@@ -46,7 +51,7 @@ async function connectWallet() {
         getUserData();
     } catch (error) {
         console.error("Wallet connection failed:", error);
-        alert("Wallet connection failed. Try restarting Phantom Wallet.");
+        alert("Wallet connection failed. Ensure Phantom is unlocked and on Monad Testnet.");
     }
 }
 
